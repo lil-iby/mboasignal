@@ -21,8 +21,8 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 RUN composer install --no-dev --optimize-autoloader
 
 # Fix permissions
-RUN chown -R www-data:www-data storage bootstrap/cache public/storage && \
-    chmod -R ug+rwx storage bootstrap/cache public/storage
+RUN chown -R www-data:www-data storage bootstrap/cache && \
+    chmod -R ug+rwx storage bootstrap/cache
 
 # Apache config
 RUN echo "<VirtualHost *:80>\n\
