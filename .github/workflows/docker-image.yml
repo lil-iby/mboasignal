@@ -8,7 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+#test
     steps:
     - uses: actions/checkout@v3
 
@@ -20,8 +20,8 @@ jobs:
 
     - name: Build and push Docker image
       run: |
-        docker build -t ${{ secrets.DOCKER_USERNAME }}/homesearch-backend-dockerhub:latest .
-        docker push ${{ secrets.DOCKER_USERNAME }}/homesearch-backend-dockerhub:latest
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/mboasignal-backend-dockerhub:latest .
+        docker push ${{ secrets.DOCKER_USERNAME }}/mboasignal-backend-dockerhub:latest
 
     - name: Trigger Render Deployment
       run: |
