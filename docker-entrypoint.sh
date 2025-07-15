@@ -6,7 +6,7 @@ set -e
 php artisan config:clear
 
 # Run Laravel migrations
-php artisan migrate --force
+php artisan migrate
 
 # Create storage link if not exists
 if [ ! -L "/var/www/html/public/storage" ]; then
