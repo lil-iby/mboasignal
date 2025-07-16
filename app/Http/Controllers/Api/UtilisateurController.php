@@ -1,32 +1,33 @@
 <?php
 
-
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Utilisateur;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class UtilisateurController extends Controller
 {
-    public function store(Request $request)
+    /**
+     * Enregistrer un nouvel utilisateur
+     */
+    public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'nom_utilisateur' => 'required|string|max:255',
             'prenom_utilisateur' => 'required|string|max:255',
             'email_utilisateur' => 'required|email|unique:utilisateurs,email_utilisateur',
-            'pass_utilisateur' => 'required|min:6',
-            'type_utilisateur' => 'required|string',
+            'pass_utilisateur' => 'required|min:6|confirmed',
+            'type_utilisateur' => 'required|string|in:admin,utilisateur,moderateur',
             'tel_utilisateur' => 'nullable|string|max:20',
             'photo_utilisateur' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'errors' => $validator->errors()
-            ], 422);
+            return response()->json(['errors' => $validator->errors()], 422);
         }
 
         $utilisateur = Utilisateur::create([
@@ -41,9 +42,118 @@ class UtilisateurController extends Controller
             'etat_compte' => 'actif',
         ]);
 
+        $token = $utilisateur->createToken('auth_token')->plainTextToken;
+
         return response()->json([
-            'message' => 'Utilisateur créé avec succès.',
+            'message' => 'Utilisateur enregistré avec succès',
+            'access_token' => $token,
+            'token_type' => 'Bearer',
             'utilisateur' => $utilisateur
         ], 201);
+    }
+
+    /**
+     * Connecter un utilisateur
+     */
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email_utilisateur' => 'required|email',
+            'pass_utilisateur' => 'required'
+        ]);
+
+        if (!Auth::attempt([
+            'email_utilisateur' => $credentials['email_utilisateur'],
+            'password' => $credentials['pass_utilisateur']
+        ])) {
+            return response()->json([
+                'message' => 'Email ou mot de passe incorrect'
+            ], 401);
+        }
+
+        $utilisateur = Utilisateur::where('email_utilisateur', $request->email_utilisateur)->firstOrFail();
+        $token = $utilisateur->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'utilisateur' => $utilisateur
+        ]);
+    }
+
+    /**
+     * Déconnecter l'utilisateur
+     */
+    public function logout(Request $request)
+    {
+        $request->Utilisateur()->currentAccessToken()->delete();
+        return response()->json(['message' => 'Déconnexion réussie']);
+    }
+
+    /**
+     * Afficher le profil de l'utilisateur connecté
+     */
+    public function profile(Request $request)
+    {
+        return response()->json($request->Utilisateur());
+    }
+
+    /**
+     * Afficher la liste des utilisateurs
+     */
+    public function index()
+    {
+        $utilisateurs = Utilisateur::all();
+        return response()->json($utilisateurs);
+    }
+
+    /**
+     * Afficher un utilisateur spécifique
+     */
+    public function show($id)
+    {
+        $utilisateur = Utilisateur::findOrFail($id);
+        return response()->json($utilisateur);
+    }
+
+    /**
+     * Mettre à jour un utilisateur
+     */
+    public function update(Request $request, $id)
+    {
+        $utilisateur = Utilisateur::findOrFail($id);
+        
+        $validator = Validator::make($request->all(), [
+            'nom_utilisateur' => 'sometimes|string|max:255',
+            'prenom_utilisateur' => 'sometimes|string|max:255',
+            'email_utilisateur' => 'sometimes|email|unique:utilisateurs,email_utilisateur,' . $id,
+            'pass_utilisateur' => 'sometimes|min:6',
+            'type_utilisateur' => 'sometimes|string|in:admin,utilisateur,moderateur',
+            'tel_utilisateur' => 'nullable|string|max:20',
+            'photo_utilisateur' => 'nullable|string|max:255',
+            'etat_compte' => 'sometimes|in:actif,inactif,suspendu'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $data = $request->all();
+        if (isset($data['pass_utilisateur'])) {
+            $data['pass_utilisateur'] = Hash::make($data['pass_utilisateur']);
+        }
+
+        $utilisateur->update($data);
+        return response()->json($utilisateur);
+    }
+
+    /**
+     * Supprimer un utilisateur
+     */
+    public function destroy($id)
+    {
+        $utilisateur = Utilisateur::findOrFail($id);
+        $utilisateur->delete();
+        return response()->json(null, 204);
     }
 }

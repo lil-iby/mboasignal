@@ -10,12 +10,20 @@ class Media extends Model
     protected $primaryKey = 'id_media';
 
     protected $fillable = [
-        'fichier',
-        'id_signalement',
+        'nom_media',
+        'chemin_media',
+        'url_media',
+        'type_media',
+        'signalement_id',
+    ];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     public function signalement()
     {
-        return $this->belongsTo(Signalement::class, 'id_signalement');
+        return $this->belongsTo(Signalement::class, 'signalement_id');
     }
 }
