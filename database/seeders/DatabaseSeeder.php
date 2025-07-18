@@ -16,8 +16,13 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'nom_utilisateur' => 'Test User',
+            'email_utilisateur' => 'test@example.com',
+        ]);
+
+        // Ajouter les catégories d'incidents
+        $this->call([
+            CategoriesTableSeeder::class,
         ]);
     }
 }

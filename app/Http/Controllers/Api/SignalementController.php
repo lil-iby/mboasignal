@@ -25,8 +25,8 @@ class SignalementController extends Controller
             'localisation_signalement' => 'required|string',
             'date_signalement' => 'required|date',
             'etat_signalement' => 'required|string',
-            'utilisateur_id' => 'required|exists:utilisateurs,id',
-            'categorie_id' => 'required|exists:categories,id',
+            'utilisateur_id' => 'nullable|exists:utilisateurs,id_utilisateur',
+            'categorie_id' => 'required|exists:categories,id_categorie',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
@@ -34,8 +34,19 @@ class SignalementController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        // Préparer les données du signalement
+        $data = $request->except('images');
+        
+        // Si l'utilisateur est authentifié, utiliser son ID
+        if (auth('api')->check()) {
+            $data['utilisateur_id'] = auth('api')->id();
+        } else {
+            // Si pas d'utilisateur authentifié, mettre à null (assurez-vous que la colonne est nullable dans la base de données)
+            $data['utilisateur_id'] = null;
+        }
+
         // Création du signalement
-        $signalement = Signalement::create($request->except('images'));
+        $signalement = Signalement::create($data);
 
         // Gestion du téléversement des images
         if ($request->hasFile('images')) {

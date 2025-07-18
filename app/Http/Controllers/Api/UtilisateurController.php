@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UtilisateurController extends Controller
 {
@@ -42,12 +43,13 @@ class UtilisateurController extends Controller
             'etat_compte' => 'actif',
         ]);
 
-        $token = $utilisateur->createToken('auth_token')->plainTextToken;
+        $token = JWTAuth::fromUser($utilisateur);
 
         return response()->json([
             'message' => 'Utilisateur enregistré avec succès',
             'access_token' => $token,
-            'token_type' => 'Bearer',
+            'token_type' => 'bearer',
+            'expires_in' => auth('api')->factory()->getTTL() * 60,
             'utilisateur' => $utilisateur
         ], 201);
     }
@@ -57,26 +59,20 @@ class UtilisateurController extends Controller
      */
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email_utilisateur' => 'required|email',
-            'pass_utilisateur' => 'required'
-        ]);
-
-        if (!Auth::attempt([
-            'email_utilisateur' => $credentials['email_utilisateur'],
-            'password' => $credentials['pass_utilisateur']
-        ])) {
+        $credentials = $request->only('email_utilisateur', 'pass_utilisateur');
+        
+        if (!$token = auth('api')->attempt(['email_utilisateur' => $credentials['email_utilisateur'], 'password' => $credentials['pass_utilisateur']])) {
             return response()->json([
                 'message' => 'Email ou mot de passe incorrect'
             ], 401);
         }
 
-        $utilisateur = Utilisateur::where('email_utilisateur', $request->email_utilisateur)->firstOrFail();
-        $token = $utilisateur->createToken('auth_token')->plainTextToken;
+        $utilisateur = auth('api')->user();
 
         return response()->json([
             'access_token' => $token,
-            'token_type' => 'Bearer',
+            'token_type' => 'bearer',
+            'expires_in' => auth('api')->factory()->getTTL() * 60,
             'utilisateur' => $utilisateur
         ]);
     }
@@ -84,18 +80,43 @@ class UtilisateurController extends Controller
     /**
      * Déconnecter l'utilisateur
      */
-    public function logout(Request $request)
+    public function logout()
     {
-        $request->Utilisateur()->currentAccessToken()->delete();
+        auth('api')->logout();
         return response()->json(['message' => 'Déconnexion réussie']);
     }
 
     /**
      * Afficher le profil de l'utilisateur connecté
      */
-    public function profile(Request $request)
+    public function profile()
     {
-        return response()->json($request->Utilisateur());
+        return response()->json(auth('api')->user());
+    }
+
+    /**
+     * Rafraîchir un token JWT expiré
+     */
+    public function refresh()
+    {
+        return $this->respondWithToken(auth('api')->refresh());
+    }
+
+    /**
+     * Obtenir la structure du tableau de la réponse du token.
+     *
+     * @param  string $token
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function respondWithToken($token)
+    {
+        return response()->json([
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => auth('api')->factory()->getTTL() * 60,
+            'user' => auth('api')->user()
+        ]);
     }
 
     /**

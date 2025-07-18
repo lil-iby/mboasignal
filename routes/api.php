@@ -35,17 +35,22 @@ Route::prefix('v1')->group(function () {
     // Routes d'authentification
     Route::post('/login', [UtilisateurController::class, 'login']);
     Route::post('/register', [UtilisateurController::class, 'register']);
+    Route::post('/refresh', [UtilisateurController::class, 'refresh']);
 
-    // route signalement non protégée
-    Route::post('signalements', SignalementController::class);
+    // Routes publiques (sans authentification)
+    Route::post('/signalements', [SignalementController::class, 'store']);
 
-    // Routes protégées par authentification
-    Route::middleware('auth:api')->group(function () {
+    // Routes protégées par authentification JWT
+    Route::middleware('jwt.verify')->group(function () {
         // Utilisateurs
-        Route::apiResource('utilisateurs', UtilisateurController::class);
+        Route::apiResource('utilisateurs', UtilisateurController::class)->except(['store']);
         
-        // Signalements
-        Route::apiResource('signalements', SignalementController::class);
+        // Routes pour signalements (toutes sauf store qui est déjà défini)
+        Route::get('signalements', [SignalementController::class, 'index']);
+        Route::get('signalements/{id}', [SignalementController::class, 'show']);
+        Route::put('signalements/{id}', [SignalementController::class, 'update']);
+        Route::patch('signalements/{id}', [SignalementController::class, 'update']);
+        Route::delete('signalements/{id}', [SignalementController::class, 'destroy']);
         
         // Autres ressources
         Route::apiResource('categories', CategorieController::class);
