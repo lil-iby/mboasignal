@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -13,16 +12,19 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Désactiver temporairement les contraintes de clé étrangère
+        \DB::statement('SET FOREIGN_KEY_CHECKS=0');
 
-        User::factory()->create([
-            'nom_utilisateur' => 'Test User',
-            'email_utilisateur' => 'test@example.com',
-        ]);
-
-        // Ajouter les catégories d'incidents
+        // Appeler les seeders dans le bon ordre pour respecter les contraintes de clé étrangère
         $this->call([
             CategoriesTableSeeder::class,
+            OrganismesTableSeeder::class,
+            UtilisateursTableSeeder::class,
+            SignalementsTableSeeder::class,
+            MediaTableSeeder::class,
         ]);
+
+        // Réactiver les contraintes de clé étrangère
+        \DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
 }

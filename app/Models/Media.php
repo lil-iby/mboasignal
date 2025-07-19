@@ -10,10 +10,7 @@ class Media extends Model
     protected $primaryKey = 'id_media';
 
     protected $fillable = [
-        'nom_media',
-        'chemin_media',
-        'url_media',
-        'type_media',
+        'fichier',
         'signalement_id',
     ];
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Organisme;
 
 class Signalement extends Model
 {
@@ -18,15 +19,30 @@ class Signalement extends Model
         'etat_signalement',
         'date_modification',
         'statut_signalement',
+        'id_categorie',
+        'id_organisme',
+        'utilisateur_id'
+    ];
+    
+    protected $dates = [
+        'date_enregistrement',
+        'date_modification',
+        'created_at',
+        'updated_at'
     ];
 
     public function medias()
     {
-        return $this->hasMany(Media::class, 'id_signalement');
+        return $this->hasMany(Media::class, 'signalement_id');
     }
     public function categorie()
     {
-        return $this->belongsTo(Categorie::class, 'id_categorie');
+        return $this->belongsTo(Categorie::class, 'id_categorie', 'id_categorie');
+    }
+    
+    public function organisme()
+    {
+        return $this->belongsTo(Organisme::class, 'id_organisme', 'id_organisme');
     }
     public function utilisateurs()
     {
