@@ -45,18 +45,6 @@ class UtilisateursTableSeeder extends Seeder
                 'type_compte' => 'agent',
                 'date_inscription' => now(),
                 'date_confirmation' => now(),
-            ],
-            [
-                'nom_utilisateur' => 'Dubois',
-                'prenom_utilisateur' => 'Pierre',
-                'email_utilisateur' => 'pierre.dubois@gmail.com',
-                'pass_utilisateur' => Hash::make('password123'),
-                'type_utilisateur' => 'citoyen',
-                'tel_utilisateur' => '0609080706',
-                'etat_compte' => 'actif',
-                'type_compte' => 'citoyen',
-                'date_inscription' => now(),
-                'date_confirmation' => now(),
             ]
         ];
 

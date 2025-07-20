@@ -2,13 +2,15 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\UtilisateurController;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\SignalementController;
+use App\Http\Controllers\Api\UtilisateurController;
 use App\Http\Controllers\Api\CategorieController;
 use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrganismeController;
 use App\Http\Controllers\Api\VisiteurController;
+use App\Http\Controllers\Api\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,32 +27,36 @@ Route::get('/test', function () {
     return response()->json(['message' => 'API est opérationnelle']);
 });
 
-// Groupe de version v1
+// Groupe de version v1 avec préfixe et middleware CORS
 Route::prefix('v1')->group(function () {
     // Route de test pour v1
     Route::get('/test', function () {
         return response()->json(['message' => 'API v1 est opérationnelle']);
     });
     
-    // Routes d'authentification
-    Route::post('/login', [UtilisateurController::class, 'login']);
-    Route::post('/register', [UtilisateurController::class, 'register']);
-    Route::post('/refresh', [UtilisateurController::class, 'refresh']);
+    // Routes d'authentification publiques
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/register', [AuthController::class, 'register']);
 
-    // Routes publiques (sans authentification)
-    Route::post('/signalements', [SignalementController::class, 'store']);
-
-    // Routes protégées par authentification JWT
-    Route::middleware('jwt.verify')->group(function () {
-        // Utilisateurs
+    // Routes protégées par authentification Sanctum
+    Route::middleware('auth:sanctum')->group(function () {
+        // Tableau de bord
+        Route::prefix('dashboard')->group(function () {
+            Route::get('/stats', [DashboardController::class, 'stats']);
+            Route::get('/recent-activities', [DashboardController::class, 'recentActivities']);
+            Route::get('/usage-stats', [DashboardController::class, 'usageStats']);
+        });
+        
+        // Routes pour utilisateurs
         Route::apiResource('utilisateurs', UtilisateurController::class)->except(['store']);
         
-        // Routes pour signalements (toutes sauf store qui est déjà défini)
-        Route::get('signalements', [SignalementController::class, 'index']);
-        Route::get('signalements/{id}', [SignalementController::class, 'show']);
-        Route::put('signalements/{id}', [SignalementController::class, 'update']);
-        Route::patch('signalements/{id}', [SignalementController::class, 'update']);
-        Route::delete('signalements/{id}', [SignalementController::class, 'destroy']);
+        // Routes pour signalements
+        Route::apiResource('signalements', SignalementController::class);
+        
+        // Routes d'authentification protégées
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/me', [AuthController::class, 'me']);
+        Route::post('/refresh', [AuthController::class, 'refresh']);
         
         // Autres ressources
         Route::apiResource('categories', CategorieController::class);

@@ -21,7 +21,7 @@ class SignalementController extends Controller
             ], 401);
         }
         
-        $signalements = Signalement::with(['utilisateur', 'categorie', 'medias'])->get();
+        $signalements = Signalement::with(['utilisateurs', 'categorie', 'medias'])->get();
         return response()->json($signalements);
     }
 
@@ -97,6 +97,16 @@ class SignalementController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        // Récupérer l'utilisateur authentifié
+        $user = auth('api')->user();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Utilisateur non authentifié.'
+            ], 401);
+        }
+        
         // Préparer les données du signalement
         $data = [
             'nom_signalement' => $request->titre_signalement,
@@ -110,17 +120,15 @@ class SignalementController extends Controller
             'date_signalement' => $request->date_signalement,
         ];
         
-        // Si l'utilisateur est authentifié, utiliser son ID
-        if (auth('api')->check()) {
-            $data['utilisateur_id'] = auth('api')->id();
-        }
-        
         // Démarrer une transaction pour s'assurer que tout se passe bien
         DB::beginTransaction();
         
         try {
             // Création du signalement
             $signalement = Signalement::create($data);
+            
+            // Attacher l'utilisateur authentifié au signalement
+            $signalement->utilisateurs()->attach($user->id_utilisateur);
 
             // Gestion du téléversement des fichiers
             if ($request->hasFile('fichiers')) {
@@ -235,7 +243,7 @@ class SignalementController extends Controller
     
     public function show($id)
     {
-        $signalement = Signalement::with(['utilisateur', 'categorie', 'medias'])->findOrFail($id);
+        $signalement = Signalement::with(['utilisateurs', 'categorie', 'medias'])->findOrFail($id);
         return response()->json($signalement);
     }
 
@@ -263,27 +271,49 @@ class SignalementController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Mise à jour du signalement
-        $signalement->update($request->except('images'));
-
-        // Gestion de l'ajout de nouvelles images
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $path = $image->store('public/signalements');
-                $url = Storage::url($path);
-
-                Media::create([
-                    'nom_media' => $image->getClientOriginalName(),
-                    'chemin_media' => $path,
-                    'url_media' => $url,
-                    'type_media' => 'image',
-                    'signalement_id' => $signalement->id,
-                ]);
+        // Démarrer une transaction
+        DB::beginTransaction();
+        
+        try {
+            // Mise à jour du signalement
+            $signalement->update($request->except(['images', 'utilisateurs']));
+            
+            // Mise à jour des utilisateurs associés si fournis
+            if ($request->has('utilisateurs')) {
+                $signalement->utilisateurs()->sync($request->utilisateurs);
             }
-        }
 
-        // Recharger le signalement avec les médias
-        $signalement->load('medias');
+            // Gestion de l'ajout de nouvelles images
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    $path = $image->store('public/signalements');
+                    $url = Storage::url($path);
+
+                    Media::create([
+                        'nom_media' => $image->getClientOriginalName(),
+                        'chemin_media' => $path,
+                        'url_media' => $url,
+                        'type_media' => 'image',
+                        'signalement_id' => $signalement->id_signalement,
+                    ]);
+                }
+            }
+            
+            // Valider la transaction
+            DB::commit();
+            
+            // Recharger le signalement avec les relations
+            $signalement->load(['utilisateurs', 'categorie', 'medias']);
+            
+        } catch (\Exception $e) {
+            // En cas d'erreur, annuler la transaction
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Une erreur est survenue lors de la mise à jour du signalement.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
 
         return response()->json($signalement);
     }
@@ -297,16 +327,36 @@ class SignalementController extends Controller
             ], 401);
         }
         
-        $signalement = Signalement::with('medias')->findOrFail($id);
+        // Démarrer une transaction
+        DB::beginTransaction();
         
-        // Supprimer les fichiers associés
-        foreach ($signalement->medias as $media) {
-            Storage::delete($media->chemin_media);
+        try {
+            $signalement = Signalement::with(['utilisateurs', 'medias'])->findOrFail($id);
+            
+            // Détacher tous les utilisateurs associés
+            $signalement->utilisateurs()->detach();
+            
+            // Supprimer les fichiers associés
+            foreach ($signalement->medias as $media) {
+                Storage::delete($media->chemin_media);
+            }
+            
+            // Supprimer le signalement
+            $signalement->delete();
+            
+            // Valider la transaction
+            DB::commit();
+            
+            return response()->json(null, 204);
+            
+        } catch (\Exception $e) {
+            // En cas d'erreur, annuler la transaction
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Une erreur est survenue lors de la suppression du signalement.',
+                'error' => $e->getMessage()
+            ], 500);
         }
-        
-        // Supprimer le signalement (les médias seront supprimés en cascade si la relation est bien configurée)
-        $signalement->delete();
-        
-        return response()->json(null, 204);
     }
 }

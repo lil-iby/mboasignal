@@ -2,18 +2,22 @@
 
 namespace App\Models;
 
-use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
-class Utilisateur extends Authenticatable implements JWTSubject
+class Utilisateur extends Authenticatable
 {
-    use Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use \App\Traits\AuthenticatableTrait;
     
     protected $table = 'utilisateurs';
     protected $primaryKey = 'id_utilisateur';
 
     protected $fillable = [
+        'code_utilisateur',
         'nom_utilisateur',
         'prenom_utilisateur',
         'email_utilisateur',
@@ -31,6 +35,30 @@ class Utilisateur extends Authenticatable implements JWTSubject
         'derniere_modification',
         'statut_en_ligne',
         'photo_utilisateur',
+        'statut_utilisateur',
+    ];
+    
+    /**
+     * Les attributs qui doivent être cachés pour la sérialisation.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'pass_utilisateur',
+        'remember_token',
+    ];
+    
+    /**
+     * Les attributs qui doivent être convertis.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'date_inscription' => 'datetime',
+        'date_confirmation' => 'datetime',
+        'date_suppression' => 'datetime',
+        'derniere_modification' => 'datetime',
+        'email_verified_at' => 'datetime',
     ];
 
     /**
@@ -47,45 +75,19 @@ class Utilisateur extends Authenticatable implements JWTSubject
      */
     const UPDATED_AT = 'derniere_modification';
 
-    /**
-     * Get the identifier that will be stored in the subject claim of the JWT.
-     *
-     * @return mixed
-     */
-    public function getJWTIdentifier()
-    {
-        return $this->getKey();
-    }
-
-    /**
-     * Return a key value array, containing any custom claims to be added to the JWT.
-     *
-     * @return array
-     */
-    public function getJWTCustomClaims()
-    {
-        return [];
-    }
+    // Les méthodes d'authentification sont maintenant dans le trait AuthenticatableTrait
 
     /**
      * Get the name of the unique identifier for the user.
      *
      * @return string
      */
-    public function getAuthIdentifierName()
+    public function getRouteKeyName()
     {
         return 'id_utilisateur';
     }
 
-    /**
-     * Get the password for the user.
-     *
-     * @return string
-     */
-    public function getAuthPassword()
-    {
-        return $this->pass_utilisateur;
-    }
+
 
 
     public function visiteur()

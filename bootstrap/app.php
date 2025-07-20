@@ -11,13 +11,14 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
-        // Middleware global
-        $middleware->api(\Illuminate\Routing\Middleware\SubstituteBindings::class);
+    ->withMiddleware(function (Middleware $middleware) {
+        $middleware->trustProxies(at: '*');
+        $middleware->trustHosts(at: ['*']);
         
-        // Middleware de groupe API
-        $middleware->group('api', [
-            \Illuminate\Routing\Middleware\ThrottleRequests::class.':60,1', // 60 requêtes par minute
+        $middleware->api([
+            \Illuminate\Http\Middleware\HandleCors::class,
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
     })
