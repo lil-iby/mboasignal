@@ -11,6 +11,10 @@ Route::middleware('guest')->group(function () {
     // Page de connexion
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
+    
+    // Page d'inscription
+    Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register']);
 });
 
 // Déconnexion (accessible uniquement aux utilisateurs connectés)

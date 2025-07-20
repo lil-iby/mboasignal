@@ -61,28 +61,18 @@ const auth = {
             });
 
             // Stocker le token et les informations utilisateur
-            if (response.status === 'success' && response.data) {
-                const user = response.data.user;
-                localStorage.setItem('auth_token', response.data.access_token);
-                localStorage.setItem('user', JSON.stringify(user));
+            if (response.data && response.data.authorization) {
+                localStorage.setItem('auth_token', response.data.authorization.token);
+                localStorage.setItem('user', JSON.stringify(response.data.user));
                 
-                // Rediriger en fonction du type d'utilisateur (1=Super Admin, 2=Admin, 3=Technicien)
-                const userType = parseInt(user.type_utilisateur);
-                switch(userType) {
-                    case 1: // Super Admin
-                        window.location.href = '/super-admin/dashboard';
-                        break;
-                    case 2: // Admin
-                        window.location.href = '/admin/dashboard';
-                        break;
-                    case 3: // Technicien
-                        window.location.href = '/technicien/dashboard';
-                        break;
-                    default:
-                        window.location.href = '/dashboard';
+                // Rediriger en fonction du rôle
+                if (response.data.user.type_utilisateur === 'admin') {
+                    window.location.href = '/admin/dashboard';
+                } else if (response.data.user.type_utilisateur === 'super-admin') {
+                    window.location.href = '/super-admin/dashboard';
+                } else {
+                    window.location.href = '/dashboard';
                 }
-            } else {
-                throw new Error(response.message || 'Erreur lors de la connexion');
             }
             
             return response;
