@@ -47,15 +47,17 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('media', function (Blueprint $table) {
-            // Annuler les modifications si nécessaire
-            if (Schema::hasColumn('media', 'nom_media')) {
+            // Only rename if nom_media exists and fichier doesn't exist
+            if (Schema::hasColumn('media', 'nom_media') && !Schema::hasColumn('media', 'fichier')) {
                 $table->renameColumn('nom_media', 'fichier');
             }
             
-            if (Schema::hasColumn('media', 'signalement_id')) {
+            // Only rename if signalement_id exists and id_signalement doesn't exist
+            if (Schema::hasColumn('media', 'signalement_id') && !Schema::hasColumn('media', 'id_signalement')) {
                 $table->renameColumn('signalement_id', 'id_signalement');
             }
             
+            // Drop only the columns that exist and are safe to drop
             $columnsToDrop = ['chemin_media', 'url_media', 'type_media'];
             foreach ($columnsToDrop as $column) {
                 if (Schema::hasColumn('media', $column)) {
