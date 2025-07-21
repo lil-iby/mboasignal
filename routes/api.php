@@ -38,18 +38,25 @@ Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
 
-    // Routes protégées par authentification Sanctum
-    Route::middleware('auth:sanctum')->group(function () {
-        // Tableau de bord
-        Route::prefix('dashboard')->group(function () {
-            Route::get('/stats', [DashboardController::class, 'stats']);
-            Route::get('/recent-activities', [DashboardController::class, 'recentActivities']);
-            Route::get('/usage-stats', [DashboardController::class, 'usageStats']);
-        });
+    // Tableau de bord
+    Route::prefix('dashboard')->group(function () {
+        Route::get('/stats', [DashboardController::class, 'stats']);
+        Route::get('/recent-activities', [DashboardController::class, 'recentActivities']);
+        Route::get('/usage-stats', [DashboardController::class, 'usageStats']);
+    });
         
         // Routes pour utilisateurs
         Route::apiResource('utilisateurs', UtilisateurController::class)->except(['store']);
         
+        // Routes explicites pour chaque action du CRUD organisme
+        Route::get('organismes', [OrganismeController::class, 'index'])->name('organismes.index');
+        Route::post('organismes', [OrganismeController::class, 'store'])->name('organismes.store');
+        Route::get('organismes/{id}', [OrganismeController::class, 'show'])->name('organismes.show');
+        Route::put('organismes/{id}', [OrganismeController::class, 'update'])->name('organismes.update');
+        Route::patch('organismes/{id}', [OrganismeController::class, 'update']);
+        Route::delete('organismes/{id}', [OrganismeController::class, 'destroy'])->name('organismes.destroy');
+        // On garde la resource route pour compatibilité éventuelle
+        Route::apiResource('organismes', OrganismeController::class);
         // Routes pour signalements
         Route::apiResource('signalements', SignalementController::class);
         
@@ -69,5 +76,4 @@ Route::prefix('v1')->group(function () {
         Route::get('/ping', function () {
             return response()->json(['message' => 'API v1 fonctionne']);
         });
-    });
 });

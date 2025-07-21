@@ -17,6 +17,10 @@ class OrganismeController extends Controller
 
     public function store(Request $request)
     {
+        $user = auth('sanctum')->user();
+        if (!$user || $user->type_utilisateur !== 'superadmin') {
+            return response()->json(['message' => 'Action réservée aux super administrateurs.'], 403);
+        }
         $validator = Validator::make($request->all(), [
             'nom_organisme' => 'required|string|max:255|unique:organismes',
             'adresse_organisme' => 'required|string',
@@ -29,7 +33,9 @@ class OrganismeController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $organisme = Organisme::create($request->all());
+        $data = $request->all();
+        $data['nombre_signalements'] = 0;
+        $organisme = Organisme::create($data);
         return response()->json($organisme, 201);
     }
 
@@ -41,6 +47,10 @@ class OrganismeController extends Controller
 
     public function update(Request $request, $id)
     {
+        $user = auth('sanctum')->user();
+        if (!$user || $user->type_utilisateur !== 'superadmin') {
+            return response()->json(['message' => 'Action réservée aux super administrateurs.'], 403);
+        }
         $organisme = Organisme::findOrFail($id);
         
         $validator = Validator::make($request->all(), [
@@ -61,6 +71,10 @@ class OrganismeController extends Controller
 
     public function destroy($id)
     {
+        $user = auth('sanctum')->user();
+        if (!$user || $user->type_utilisateur !== 'superadmin') {
+            return response()->json(['message' => 'Action réservée aux super administrateurs.'], 403);
+        }
         $organisme = Organisme::findOrFail($id);
         $organisme->delete();
         return response()->json(null, 204);

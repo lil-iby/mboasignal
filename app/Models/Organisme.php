@@ -13,8 +13,12 @@ class Organisme extends Model
 
     protected $fillable = [
         'nom_organisme',
-        'contact_organisme',
+        'domaine_organisme',
+        'email_organisme',
+        'tel_organisme',
+        'description_organisme',
         'adresse_organisme',
+        'nombre_signalements',
     ];
 
     public function signalements()
