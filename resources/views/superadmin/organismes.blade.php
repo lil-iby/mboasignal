@@ -137,10 +137,13 @@
             <input type="text" name="domaine_organisme" id="org-domaine" placeholder="Domaine" class="form-control" style="border:1px solid #ccc;border-radius:7px;padding:10px 14px;margin-bottom:0.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:border-color 0.2s;outline:none;font-size:1rem;" onfocus="this.style.borderColor='#007bff'" onblur="this.style.borderColor='#ccc'">
           </div>
           <div style="margin-bottom:1rem;">
-            <input type="email" name="email_organisme" id="org-email" placeholder="Email du responsable" class="form-control" style="border:1px solid #ccc;border-radius:7px;padding:10px 14px;margin-bottom:0.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:border-color 0.2s;outline:none;font-size:1rem;" onfocus="this.style.borderColor='#007bff'" onblur="this.style.borderColor='#ccc'">
+            <input type="email" name="email_organisme" id="org-email" placeholder="Email du responsable" class="form-control" style="border:1px solid #ccc;border-radius:7px;padding:10px 14px;margin-bottom:0.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:border-color 0.2s;outline:none;font-size:1rem;" onfocus="this.style.borderColor='#007bff'" onblur="this.style.borderColor='#ccc'" required>
           </div>
           <div style="margin-bottom:1rem;">
-            <input type="text" name="tel_organisme" id="org-tel" placeholder="Téléphone" class="form-control" style="border:1px solid #ccc;border-radius:7px;padding:10px 14px;margin-bottom:0.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:border-color 0.2s;outline:none;font-size:1rem;" onfocus="this.style.borderColor='#007bff'" onblur="this.style.borderColor='#ccc'">
+            <input type="text" name="tel_organisme" id="org-tel" placeholder="Téléphone" class="form-control" style="border:1px solid #ccc;border-radius:7px;padding:10px 14px;margin-bottom:0.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:border-color 0.2s;outline:none;font-size:1rem;" onfocus="this.style.borderColor='#007bff'" onblur="this.style.borderColor='#ccc'" required>
+          </div>
+          <div style="margin-bottom:1rem;">
+            <input type="text" name="adresse_organisme" id="org-adresse" placeholder="Adresse complète" class="form-control" style="border:1px solid #ccc;border-radius:7px;padding:10px 14px;margin-bottom:0.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:border-color 0.2s;outline:none;font-size:1rem;" onfocus="this.style.borderColor='#007bff'" onblur="this.style.borderColor='#ccc'" required>
           </div>
           <div style="margin-bottom:1rem;">
             <textarea name="description_organisme" id="org-desc" placeholder="Description (optionnelle)" class="form-control" style="border:1px solid #ccc;border-radius:7px;padding:10px 14px;min-height:60px;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:border-color 0.2s;outline:none;font-size:1rem;resize:vertical;" onfocus="this.style.borderColor='#007bff'" onblur="this.style.borderColor='#ccc'"></textarea>
@@ -204,49 +207,62 @@
     document.getElementById('organismeForm').onsubmit = async function(e) {
       e.preventDefault();
       const token = localStorage.getItem('auth_token');
+      if (!token) {
+        console.error('Session expirée. Veuillez vous reconnecter.');
+        window.location.href = '/login';
+        return;
+      }
+
       const id = document.getElementById('org-id').value;
       const data = {
         nom_organisme: document.getElementById('org-nom').value,
         domaine_organisme: document.getElementById('org-domaine').value,
         email_organisme: document.getElementById('org-email').value,
         tel_organisme: document.getElementById('org-tel').value,
+        adresse_organisme: document.getElementById('org-adresse').value,
         description_organisme: document.getElementById('org-desc').value
       };
+
+      // Validation des données
+      if (!data.nom_organisme || !data.domaine_organisme || !data.email_organisme) {
+        alert('Veuillez remplir tous les champs obligatoires');
+        return;
+      }
+
       try {
-        let response;
-        if (id) {
-          response = await fetch(`/api/v1/organismes/${id}`, {
-            method: 'PATCH',
-            headers: {
-              'Authorization': 'Bearer ' + token,
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'X-Requested-With': 'XMLHttpRequest',
-              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify(data)
-          });
-        } else {
-          response = await fetch('/api/v1/organismes', {
-            method: 'POST',
-            headers: {
-              'Authorization': 'Bearer ' + token,
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'X-Requested-With': 'XMLHttpRequest',
-              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify(data)
-          });
-        }
+        const url = id ? `/api/v1/organismes/${id}` : '/api/v1/organismes';
+        const method = id ? 'PATCH' : 'POST';
+        
+        console.log('Envoi de la requête:', { url, method, data });
+        
+        const response = await fetch(url, {
+          method: method,
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+          },
+          body: JSON.stringify(data)
+        });
+
+        const responseData = await response.json();
+        console.log('Réponse du serveur:', responseData);
+
         if (!response.ok) {
-          alert("Erreur lors de l'enregistrement de l'organisme");
+          const errorMsg = responseData.message || 'Erreur lors de l\'enregistrement de l\'organisme';
+          console.error('Erreur serveur:', response.status, response.statusText, errorMsg);
+          alert(`Erreur ${response.status}: ${errorMsg}`);
           return;
         }
+
         hideOrganismeModal();
-        fetchAndRenderOrganismes();
+        await fetchAndRenderOrganismes();
+        alert(id ? 'Organisme mis à jour avec succès' : 'Organisme créé avec succès');
       } catch (e) {
-        alert('Erreur réseau');
+        console.error('Erreur lors de la requête:', e);
+        alert('Erreur réseau: ' + e.message);
       }
     };
     // Suppression
@@ -286,3 +302,16 @@
 </main>
 
 @include('includes.footer')
+
+<script>
+// Script de débogage temporaire
+window.addEventListener('DOMContentLoaded', function() {
+  const csrfToken = document.querySelector('meta[name="csrf-token"]');
+  console.log('CSRF Token element:', csrfToken);
+  if (csrfToken) {
+    console.log('CSRF Token value:', csrfToken.getAttribute('content'));
+  } else {
+    console.error('Aucune balise meta CSRF trouvée dans le document');
+  }
+});
+</script>
