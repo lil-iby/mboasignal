@@ -1,11 +1,11 @@
-<?php
-session_start();
-// Vérifie que l'utilisateur est superadmin (à implémenter)
-// $_SESSION['role'] = 'superadmin';
-
-include '../includes/header.php';
-include '../includes/sidebar_superadmin.php';
-?>
+<script>
+  // Vérification du rôle superadmin avant affichage
+  if (localStorage.getItem('type_utilisateur') !== 'superadmin') {
+    window.location.href = '/unauthorized';
+  }
+</script>
+@include('includes.header')
+@include('includes.sidebar_superadmin')
 <main class="content" role="main">
   <header class="page-header">
   <h1>Tableau de bord</h1>
@@ -41,4 +41,4 @@ include '../includes/sidebar_superadmin.php';
 </main>
 
 
-<?php include '../includes/footer.php'; ?>
+@include('includes.footer')

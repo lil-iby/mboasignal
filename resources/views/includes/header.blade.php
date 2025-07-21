@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
 
   <!-- CSS commun dashboard -->
-  <link rel="stylesheet" href="../css/dashboard.css" />
+  <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}" />
 
 </head>
 <body>

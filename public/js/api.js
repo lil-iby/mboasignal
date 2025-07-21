@@ -60,16 +60,12 @@ const auth = {
                 password: password
             });
 
-            // Stocker le token et les informations utilisateur
+            // Rediriger en fonction du rôle
             if (response.data && response.data.authorization) {
-                localStorage.setItem('auth_token', response.data.authorization.token);
-                localStorage.setItem('user', JSON.stringify(response.data.user));
-                
-                // Rediriger en fonction du rôle
                 if (response.data.user.type_utilisateur === 'admin') {
                     window.location.href = '/admin/dashboard';
                 } else if (response.data.user.type_utilisateur === 'super-admin') {
-                    window.location.href = '/super-admin/dashboard';
+                    window.location.href = '/superadmin/dashboard';
                 } else {
                     window.location.href = '/dashboard';
                 }

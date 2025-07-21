@@ -22,27 +22,62 @@ Route::post('/logout', [LoginController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
 
-// Groupe de routes protégées pour l'administration
-Route::middleware(['auth', 'role:admin|super-admin'])
-    ->prefix('admin')
+Route::prefix('admin')
     ->name('admin.')
     ->group(function () {
         // Tableau de bord admin
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-        // Ajoutez ici d'autres routes d'administration
+        // Signalements admin
+        Route::get('/signalements', function () {
+            return view('admin.signalements');
+        })->name('signalements');
+        // Techniciens admin
+        Route::get('/techniciens', function () {
+            return view('admin.techniciens');
+        })->name('techniciens');
+        // Statistiques admin
+        Route::get('/statistiques', function () {
+            return view('admin.statistiques');
+        })->name('statistiques');
+        // Carte admin
+        Route::get('/carte', function () {
+            return view('admin.carte');
+        })->name('carte');
+        // Mon organisme admin
+        Route::get('/mon_organisme', function () {
+            return view('admin.mon_organisme');
+        })->name('mon_organisme');
     });
+Route::get('/unauthorized', function () {
+    return view('unauthorized');
+});
 
-// Groupe de routes pour le super administrateur
-Route::middleware(['auth', 'role:super-admin'])
-    ->prefix('super-admin')
-    ->name('super-admin.')
+Route::prefix('superadmin')
+    ->name('superadmin.')
     ->group(function () {
-        // Tableau de bord super-admin
-        Route::get('/dashboard', [SuperAdminDashboardController::class, 'index'])->name('dashboard');
-        // Ajoutez ici d'autres routes spécifiques au super-admin
+        // Tableau de bord superadmin
+        Route::get('/dashboard', function () {
+            return view('superadmin.dashboard');
+        })->name('dashboard');
+        // Utilisateurs superadmin
+        Route::get('/utilisateurs', function () {
+            return view('superadmin.utilisateurs');
+        })->name('utilisateurs');
+        // Organismes superadmin
+        Route::get('/organismes', function () {
+            return view('superadmin.organismes');
+        })->name('organismes');
+        // Carte superadmin
+        Route::get('/carte', function () {
+            return view('superadmin.carte');
+        })->name('carte');
+        // Statistiques superadmin
+        Route::get('/statistiques', function () {
+            return view('superadmin.statistiques');
+        })->name('statistiques');
+        // Paramètres superadmin
+        Route::get('/parametres', function () {
+            return view('superadmin.parametres');
+        })->name('parametres');
+        // Ajoutez ici d'autres routes spécifiques au superadmin
     });
-
-// Redirection après connexion
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])
-    ->name('home')
-    ->middleware('auth');

@@ -1,8 +1,15 @@
-<?php include '../includes/header.php'; ?>
-<?php include '../includes/sidebar_superadmin.php'; ?>
+<script>
+  // Vérification du rôle superadmin avant affichage
+  if (localStorage.getItem('type_utilisateur') !== 'superadmin') {
+    window.location.href = '/unauthorized';
+  }
+</script>
+
+@include('includes.header')
+@include('includes.sidebar_superadmin')
 
 <main class="content">
-  
+
     <header class="page-header">
       <h1>Organismes partenaires</h1>
       <div class="user-info">
@@ -72,4 +79,4 @@
 
 </main>
 
-<?php include '../includes/footer.php'; ?>
+@include('includes.footer')

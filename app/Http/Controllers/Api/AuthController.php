@@ -35,7 +35,7 @@ class AuthController extends BaseController
             'email_utilisateur' => 'required|string|email|max:255|unique:utilisateurs',
             'pass_utilisateur' => 'required|string|min:6|confirmed',
             'tel_utilisateur' => 'required|string|max:20',
-            'type_utilisateur' => 'required|string|in:utilisateur,admin',
+            'type_utilisateur' => 'required|string|in:admin,superadmin,citoyen,technicien',
         ]);
 
         if ($validator->fails()) {
