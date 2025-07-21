@@ -33,17 +33,20 @@ class LoginController extends Controller
      * @return string
      */
     public function redirectTo()
-    {
-        if (auth()->check()) {
-            if (auth()->user()->hasRole('super-admin')) {
-                return '/super-admin/dashboard';
-            } elseif (auth()->user()->hasRole('admin')) {
-                return '/admin/dashboard';
-            }
+{
+    if (auth()->check()) {
+        $type = auth()->user()->type_utilisateur;
+
+        if ($type == 1) {
+            return '/superadmin/dashboard'; // superadmin
+        } elseif ($type == 2) {
+            return '/admin_organisme/dashboard'; // admin organisme
         }
-        
-        return $this->redirectTo;
     }
+
+    return '/home'; // par défaut
+}
+
 
     /**
      * Show the application's login form.
