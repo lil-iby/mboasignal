@@ -132,8 +132,10 @@
       method: 'DELETE',
       headers: {
         'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'X-CSRF-TOKEN': csrfToken
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
       }
     });
     hideDeleteModal();
@@ -160,9 +162,10 @@
       method: 'PATCH',
       headers: {
         'Authorization': 'Bearer ' + token,
-        'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': csrfToken
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
       },
       body: JSON.stringify({ etat_compte: statusToSet })
     });

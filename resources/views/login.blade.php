@@ -168,6 +168,7 @@
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
           },
           body: JSON.stringify({
@@ -197,7 +198,7 @@
         } else if (user.type_utilisateur === 'admin') {
           window.location.href = '/admin/dashboard';
         } else {
-          window.location.href = '/dashboard';
+          window.location.href = '/unauthorized';
         }
 
       } catch (error) {

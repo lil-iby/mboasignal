@@ -11,13 +11,8 @@ class VerifyCsrfToken extends Middleware
      *
      * @var array<int, string>
      */
-    public function handle($request, Closure $next)
-    {
-        return $next($request); // supprime toute vérification (risqué)
-    }
     protected $except = [
-        'api/*',         // toutes les routes commençant par /api
-        'auth/*',        // ou les routes spécifiques d’auth
+        'api/*',
+        'sanctum/csrf-cookie'
     ];
 }
-

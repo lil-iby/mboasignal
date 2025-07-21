@@ -169,7 +169,10 @@
         // Charger infos organisme à modifier
         const token = localStorage.getItem('auth_token');
         fetch(`/api/v1/organismes/${id}`, {
-          headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+          headers: { 
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/json'
+          }
         })
           .then(r => r.json())
           .then(o => {
@@ -216,8 +219,10 @@
             method: 'PATCH',
             headers: {
               'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json',
               'Accept': 'application/json',
-              'Content-Type': 'application/json'
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
             body: JSON.stringify(data)
           });
@@ -226,8 +231,10 @@
             method: 'POST',
             headers: {
               'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json',
               'Accept': 'application/json',
-              'Content-Type': 'application/json'
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
             body: JSON.stringify(data)
           });
@@ -260,7 +267,10 @@
           method: 'DELETE',
           headers: {
             'Authorization': 'Bearer ' + token,
-            'Accept': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
           }
         });
         hideDeleteOrganismeModal();
