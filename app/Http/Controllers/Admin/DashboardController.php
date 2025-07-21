@@ -14,11 +14,11 @@ class DashboardController extends Controller
      *
      * @return void
      */
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->middleware('role:admin|super-admin');
-    }
+    // public function __construct()
+    // {
+    //     $this->middleware('auth');
+    //     $this->middleware('role:admin|super-admin');
+    // }
 
     /**
      * Show the application dashboard.
@@ -27,45 +27,8 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        // Récupérer le token d'authentification de l'utilisateur connecté
-        $token = Auth::user()->createToken('dashboard-token')->plainTextToken;
-        
-        // Configuration pour les appels API
-        $headers = [
-            'Authorization' => 'Bearer ' . $token,
-            'Accept' => 'application/json',
-        ];
-        
-        try {
-            // Récupérer les statistiques depuis l'API
-            $statsResponse = Http::withHeaders($headers)
-                ->get(config('app.url') . '/api/v1/dashboard/stats');
-                
-            $recentActivitiesResponse = Http::withHeaders($headers)
-                ->get(config('app.url') . '/api/v1/dashboard/recent-activities');
-                
-            $usageStatsResponse = Http::withHeaders($headers)
-                ->get(config('app.url') . '/api/v1/dashboard/usage-stats');
-            
-            // Vérifier si les réponses sont valides
-            if ($statsResponse->successful() && $recentActivitiesResponse->successful() && $usageStatsResponse->successful()) {
-                $stats = $statsResponse->json();
-                $recentActivities = $recentActivitiesResponse->json();
-                $usageStats = $usageStatsResponse->json();
-                
-                return view('admin.dashboard.index', array_merge($stats, [
-                    'recentActivities' => $recentActivities,
-                    'usageStats' => $usageStats,
-                ]));
-            }
-            
-            // En cas d'erreur, utiliser des données factices
-            return $this->fallbackDashboard();
-            
-        } catch (\Exception $e) {
-            // En cas d'erreur, utiliser des données factices
-            return $this->fallbackDashboard();
-        }
+        // Aucune dépendance à Auth, retourne toujours des données factices
+        return $this->fallbackDashboard();
     }
     
     /**
@@ -75,7 +38,7 @@ class DashboardController extends Controller
      */
     protected function fallbackDashboard()
     {
-        return view('admin.dashboard.index', [
+        return view('admin.dashboard', [
             'userCount' => 0,
             'contentCount' => 0,
             'activityCount' => 0,

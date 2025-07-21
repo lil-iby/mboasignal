@@ -19,7 +19,6 @@ Route::middleware('guest')->group(function () {
 
 // Déconnexion (accessible uniquement aux utilisateurs connectés)
 Route::post('/logout', [LoginController::class, 'logout'])
-    ->middleware('auth')
     ->name('logout');
 
 Route::prefix('admin')

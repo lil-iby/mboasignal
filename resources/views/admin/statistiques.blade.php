@@ -1,5 +1,10 @@
-<?php include '../includes/header.php'; ?>
-<?php include '../includes/sidebar_admin.php'; ?>
+@include('includes.header')
+<script>
+if (!localStorage.type_utilisateur || localStorage.type_utilisateur !== 'admin') {
+    window.location.href = '/unauthorized';
+}
+</script>
+@include('includes.sidebar_admin')
 
 <main class="content">
 
@@ -43,7 +48,7 @@
 
 </main>
 
-<?php include '../includes/footer.php'; ?>
+@include('includes.footer')
 
 <!-- FontAwesome pour les icônes -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />

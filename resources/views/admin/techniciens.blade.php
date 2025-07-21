@@ -1,11 +1,10 @@
-<?php
-session_start();
-// Vérifie que l'utilisateur est admin organisme (à implémenter)
-// $_SESSION['role'] = 'admin_organisme';
-
-include '../includes/header.php';
-include '../includes/sidebar_admin.php';
-?>
+@include('includes.header')
+<script>
+if (!localStorage.type_utilisateur || localStorage.type_utilisateur !== 'admin') {
+    window.location.href = '/unauthorized';
+}
+</script>
+@include('includes.sidebar_admin')
 
 
 
@@ -60,4 +59,4 @@ include '../includes/sidebar_admin.php';
 
 </main>
 
-<?php include 'includes/footer.php'; ?>
+@include('includes.footer')
