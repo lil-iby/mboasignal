@@ -174,7 +174,7 @@ class SignalementController extends Controller
             'description_signalement' => 'required|string',
             'localisation_signalement' => 'required|string',
             'date_signalement' => 'required|date',
-            'etat_signalement' => 'required|string|in:en_cours,traité,en_attente',
+            'etat_signalement' => 'nullable|string|in:en_cours,traité,en_attente',
             'categorie_id' => 'required|exists:categories,id_categorie',
             'organisme_id' => 'nullable|exists:organismes,id_organisme',
             'fichiers' => 'nullable|array',
