@@ -71,25 +71,36 @@ class AuthController extends BaseController
     {
         $request->validate([
             'email_utilisateur' => 'required|email',
-            'password' => 'required|string',
+            'pass_utilisateur' => 'required|string',
         ]);
 
-        // Vérifier les identifiants avec le guard web
-        if (!Auth::attempt([
-            'email_utilisateur' => $request->email_utilisateur,
-            'password' => $request->password,
-            'etat_compte' => 'activé'
-        ])) {
+        // Récupérer l'utilisateur par email
+        $user = User::where('email_utilisateur', $request->email_utilisateur)->first();
+
+        // Vérifier si l'utilisateur existe et que le mot de passe est correct
+        if (!$user || !Hash::check($request->pass_utilisateur, $user->pass_utilisateur)) {
             return response()->json([
-                'message' => 'Identifiants invalides ou compte désactivé',
+                'success' => false,
+                'message' => 'Identifiants invalides',
                 'errors' => [
                     'email_utilisateur' => ['Ces identifiants ne correspondent pas à nos enregistrements.']
                 ]
             ], 401);
         }
 
-        // Récupérer l'utilisateur authentifié
-        $user = Auth::user();
+        // Vérifier si le compte est activé
+        if ($user->etat_compte !== 'activé') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ce compte est désactivé',
+                'errors' => [
+                    'compte' => ['Votre compte a été désactivé. Veuillez contacter un administrateur.']
+                ]
+            ], 403);
+        }
+
+        // Authentifier l'utilisateur
+        Auth::login($user);
 
         // Mettre à jour la date de dernière connexion
         $user->update([
@@ -100,46 +111,90 @@ class AuthController extends BaseController
         // Créer un nouveau token d'API pour l'utilisateur
         $token = $user->createToken('auth_token')->plainTextToken;
         
+        // Charger les relations nécessaires
+        $user->load('organisme');
+        
         return response()->json([
-            'status' => 'success',
-            'user' => [
-                'id' => $user->id_utilisateur,
-                'nom' => $user->nom_utilisateur,
-                'prenom' => $user->prenom_utilisateur,
-                'email' => $user->email_utilisateur,
-                'type_utilisateur' => $user->type_utilisateur,
-                'statut_en_ligne' => $user->statut_en_ligne,
-                'derniere_connexion' => $user->derniere_connexion,
-            ],
-            'authorization' => [
-                'token' => $token,
-                'type' => 'bearer',
-                'expires_in' => config('sanctum.expiration', 60 * 24 * 7) // en minutes
+            'success' => true,
+            'message' => 'Connexion réussie',
+            'data' => [
+                'user' => [
+                    'id' => $user->id_utilisateur,
+                    'nom' => $user->nom_utilisateur,
+                    'prenom' => $user->prenom_utilisateur,
+                    'email' => $user->email_utilisateur,
+                    'telephone' => $user->tel_utilisateur,
+                    'type_utilisateur' => $user->type_utilisateur,
+                    'organisme' => $user->organisme ? [
+                        'id' => $user->organisme->id_organisme,
+                        'nom' => $user->organisme->nom_organisme,
+                    ] : null,
+                    'statut_en_ligne' => $user->statut_en_ligne,
+                    'derniere_connexion' => $user->derniere_connexion,
+                ],
+                'token' => [
+                    'access_token' => $token,
+                    'token_type' => 'bearer',
+                    'expires_in' => config('sanctum.expiration', 60 * 24 * 7) // en minutes
+                ]
             ]
         ]);
     }
 
     /**
-     * Get the authenticated User.
+     * Récupère les informations de l'utilisateur connecté
      *
      * @return \Illuminate\Http\JsonResponse
      */
     public function me()
     {
-        return response()->json(Auth::user());
+        $user = Auth::user();
+        $user->load('organisme');
+        
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'user' => [
+                    'id' => $user->id_utilisateur,
+                    'nom' => $user->nom_utilisateur,
+                    'prenom' => $user->prenom_utilisateur,
+                    'email' => $user->email_utilisateur,
+                    'telephone' => $user->tel_utilisateur,
+                    'type_utilisateur' => $user->type_utilisateur,
+                    'organisme' => $user->organisme ? [
+                        'id' => $user->organisme->id_organisme,
+                        'nom' => $user->organisme->nom_organisme,
+                    ] : null,
+                    'statut_en_ligne' => $user->statut_en_ligne,
+                    'derniere_connexion' => $user->derniere_connexion,
+                    'created_at' => $user->created_at,
+                    'updated_at' => $user->updated_at
+                ]
+            ]
+        ]);
     }
 
     /**
-     * Log the user out (Invalidate the token).
+     * Déconnecte l'utilisateur et invalide le token actuel
      *
      * @return \Illuminate\Http\JsonResponse
      */
     public function logout()
     {
-        $user = Auth::guard('web')->user();
+        $user = Auth::user();
+        
+        // Mettre à jour le statut de l'utilisateur
+        $user->update([
+            'statut_en_ligne' => false
+        ]);
+        
+        // Supprimer le token d'accès actuel
         $user->currentAccessToken()->delete();
         
-        return response()->json(['message' => 'Successfully logged out']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Déconnexion réussie'
+        ]);
     }
 
     /**
