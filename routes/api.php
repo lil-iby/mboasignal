@@ -27,7 +27,7 @@ Route::get('/test', function () {
     return response()->json(['message' => 'API est opérationnelle']);
 });
 
-// Groupe de version v1 avec préfixe et middleware CORS
+// Groupe de version v1 avec préfixe
 Route::prefix('v1')->group(function () {
     // Route de test pour v1
     Route::get('/test', function () {
@@ -38,41 +38,42 @@ Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
 
-    // Tableau de bord
-    Route::prefix('dashboard')->group(function () {
-        Route::get('/stats', [DashboardController::class, 'stats']);
-        Route::get('/recent-activities', [DashboardController::class, 'recentActivities']);
-        Route::get('/usage-stats', [DashboardController::class, 'usageStats']);
-    });
-        
-        // Routes pour utilisateurs
-        Route::apiResource('utilisateurs', UtilisateurController::class);
-        
-        // Routes explicites pour chaque action du CRUD organisme
-        Route::get('organismes', [OrganismeController::class, 'index'])->name('organismes.index');
-        Route::post('organismes', [OrganismeController::class, 'store'])->name('organismes.store');
-        Route::get('organismes/{id}', [OrganismeController::class, 'show'])->name('organismes.show');
-        Route::put('organismes/{id}', [OrganismeController::class, 'update'])->name('organismes.update');
-        Route::delete('organismes/{id}', [OrganismeController::class, 'destroy'])->name('organismes.destroy');
-        // On garde la resource route pour compatibilité éventuelle
-        Route::apiResource('organismes', OrganismeController::class);
-        // Routes pour signalements
-        Route::apiResource('signalements', SignalementController::class);
-        
-        // Routes d'authentification protégées
+    // Routes protégées par authentification
+    Route::middleware('auth:api')->group(function () {
+        // Route de déconnexion
         Route::post('/logout', [AuthController::class, 'logout']);
+        
+        // Routes d'authentification
         Route::get('/me', [AuthController::class, 'me']);
         Route::post('/refresh', [AuthController::class, 'refresh']);
+        
+        // Tableau de bord
+        Route::prefix('dashboard')->group(function () {
+            Route::get('/stats', [DashboardController::class, 'stats']);
+            Route::get('/recent-activities', [DashboardController::class, 'recentActivities']);
+            Route::get('/usage-stats', [DashboardController::class, 'usageStats']);
+        });
+        
+        // Routes pour les signalements
+        Route::apiResource('signalements', SignalementController::class);
+        Route::get('/signalements/stats/etat', [SignalementController::class, 'statsParEtat']);
+        Route::get('/mes-signalements', [SignalementController::class, 'byOrganisme']);
+        
+        // Routes pour les utilisateurs
+        Route::apiResource('utilisateurs', UtilisateurController::class);
+        
+        // Routes pour les organismes
+        Route::apiResource('organismes', OrganismeController::class);
         
         // Autres ressources
         Route::apiResource('categories', CategorieController::class);
         Route::apiResource('medias', MediaController::class);
         Route::apiResource('notifications', NotificationController::class);
-        Route::apiResource('organismes', OrganismeController::class);
         Route::apiResource('visiteurs', VisiteurController::class);
         
         // Route de test
         Route::get('/ping', function () {
             return response()->json(['message' => 'API v1 fonctionne']);
         });
+    });
 });

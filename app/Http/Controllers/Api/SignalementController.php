@@ -12,6 +12,37 @@ use Illuminate\Support\Facades\DB;
 
 class SignalementController extends Controller
 {
+    /**
+     * Récupère les statistiques des signalements par état
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function statsParEtat()
+    {
+        if (!auth('api')->check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Authentification requise. Token manquant ou invalide.'
+            ], 401);
+        }
+
+        $stats = Signalement::selectRaw('etat_signalement, COUNT(*) as total')
+            ->groupBy('etat_signalement')
+            ->get()
+            ->mapWithKeys(function($item) {
+                return [$item->etat_signalement => $item->total];
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => $stats
+        ]);
+    }
+    /**
+     * Récupère tous les signalements avec leurs relations
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function index()
     {
         if (!auth('api')->check()) {
@@ -22,6 +53,46 @@ class SignalementController extends Controller
         }
         
         $signalements = Signalement::with(['utilisateurs', 'categorie', 'medias'])->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $signalements
+        ]);
+    }
+    
+    /**
+     * Récupère les signalements de l'organisme connecté
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function byOrganisme()
+    {
+        $user = auth('api')->user();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Authentification requise. Token manquant ou invalide.'
+            ], 401);
+        }
+        
+        // Vérifier si l'utilisateur a un organisme associé
+        if (!$user->organisme_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucun organisme associé à cet utilisateur.'
+            ], 403);
+        }
+        
+        // Récupérer les signalements de l'organisme de l'utilisateur
+        $signalements = Signalement::where('organisme_id', $user->organisme_id)
+            ->with(['utilisateurs', 'categorie', 'medias'])
+            ->get();
+            
+        return response()->json([
+            'success' => true,
+            'data' => $signalements
+        ]);
         return response()->json($signalements);
     }
 

@@ -27,8 +27,9 @@ Route::prefix('admin')
         // Tableau de bord admin
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         // Signalements admin
-        Route::get('/signalements', [\App\Http\Controllers\Admin\SignalementController::class, 'index'])
-            ->name('signalements');
+        Route::get('/signalements', function () {
+            return view('admin.signalements');
+        })->name('signalements');
         // Techniciens admin
         Route::get('/techniciens', function () {
             return view('admin.techniciens');
