@@ -22,43 +22,90 @@ class AuthController extends BaseController
     }
 
     /**
-     * Register a new user.
+     * Enregistre un nouvel utilisateur
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function register(Request $request)
     {
+        // Validation des données
         $validator = Validator::make($request->all(), [
-            'nom_utilisateur' => 'required|string|max:255',
-            'prenom_utilisateur' => 'required|string|max:255',
-            'email_utilisateur' => 'required|string|email|max:255|unique:users',
-            'pass_utilisateur' => 'required|string|min:6|confirmed',
+            'nom_utilisateur' => 'required|string|max:100',
+            'prenom_utilisateur' => 'required|string|max:100',
+            'email_utilisateur' => 'required|string|email|max:100|unique:utilisateurs,email_utilisateur',
+            'pass_utilisateur' => 'required|string|min:8|confirmed',
             'tel_utilisateur' => 'required|string|max:20',
             'type_utilisateur' => 'required|string|in:admin,superadmin,citoyen,technicien',
+            'organisme_id' => 'nullable|exists:organismes,id_organisme',
+        ], [
+            'email_utilisateur.unique' => 'Cette adresse email est déjà utilisée.',
+            'pass_utilisateur.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
+            'pass_utilisateur.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de validation',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        $user = User::create([
-            'nom_utilisateur' => $request->nom_utilisateur,
-            'prenom_utilisateur' => $request->prenom_utilisateur,
-            'email_utilisateur' => $request->email_utilisateur,
-            'pass_utilisateur' => Hash::make($request->pass_utilisateur),
-            'tel_utilisateur' => $request->tel_utilisateur,
-            'type_utilisateur' => $request->type_utilisateur,
-        ]);
+        // Création de l'utilisateur
+        try {
+            $user = User::create([
+                'nom_utilisateur' => $request->nom_utilisateur,
+                'prenom_utilisateur' => $request->prenom_utilisateur,
+                'email_utilisateur' => $request->email_utilisateur,
+                'pass_utilisateur' => Hash::make($request->pass_utilisateur),
+                'tel_utilisateur' => $request->tel_utilisateur,
+                'type_utilisateur' => $request->type_utilisateur,
+                'organisme_id' => $request->organisme_id,
+                'etat_compte' => 'en_attente', // Par défaut, le compte est en attente de validation
+                'statut_en_ligne' => false,
+                'derniere_connexion' => now(),
+            ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+            // Attribuer un rôle à l'utilisateur
+            if (in_array($request->type_utilisateur, ['admin', 'superadmin'])) {
+                $user->assignRole($request->type_utilisateur);
+            } else {
+                $user->assignRole('citoyen');
+            }
 
-        return response()->json([
-            'message' => 'User registered successfully',
-            'user' => $user,
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-        ], 201);
+            // Créer un token d'accès
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Inscription réussie. Votre compte est en attente de validation par un administrateur.',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id_utilisateur,
+                        'nom' => $user->nom_utilisateur,
+                        'prenom' => $user->prenom_utilisateur,
+                        'email' => $user->email_utilisateur,
+                        'type_utilisateur' => $user->type_utilisateur,
+                        'etat_compte' => $user->etat_compte,
+                    ],
+                    'token' => [
+                        'access_token' => $token,
+                        'token_type' => 'bearer',
+                        'expires_in' => config('sanctum.expiration', 60 * 24 * 7) // en minutes
+                    ]
+                ]
+            ], 201);
+
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de l\'inscription: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Une erreur est survenue lors de l\'inscription',
+                'error' => env('APP_DEBUG') ? $e->getMessage() : null
+            ], 500);
+        }
     }
 
     /**

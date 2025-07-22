@@ -31,7 +31,6 @@ Route::get('/test', function () {
 Route::prefix('v1')->group(function () {
     // Route de test pour v1 (publique)
     Route::get('/test', function () {
-        Route::apiResource('signalements', SignalementController::class)->except(['index', 'show']);
         return response()->json(['message' => 'API v1 est opérationnelle']);
     });
     
@@ -39,8 +38,16 @@ Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
 
+    // Routes pour les signalements (lecture seule)
+    Route::get('/signalements', [SignalementController::class, 'index']);
+    Route::get('/signalements/{signalement}', [SignalementController::class, 'show']);
+
     // Routes protégées par authentification
     Route::middleware(['auth:sanctum'])->group(function () {
+        // Routes pour les signalements (écriture)
+        Route::post('/signalements', [SignalementController::class, 'store']);
+        Route::put('/signalements/{signalement}', [SignalementController::class, 'update']);
+        Route::delete('/signalements/{signalement}', [SignalementController::class, 'destroy']);
         // Route de déconnexion
         Route::post('/logout', [AuthController::class, 'logout']);
         
