@@ -45,8 +45,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/mes-signalements', [SignalementController::class, 'byOrganisme']);
     
     // Routes publiques pour les catégories
-    Route::get('/categories', [CategorieController::class, 'index']);
-    Route::post('/categories', [CategorieController::class, 'store']);
+    Route::apiResource('categories', CategorieController::class);
 
     // Routes protégées par authentification Sanctum
     Route::middleware(['auth:sanctum'])->group(function () {
@@ -65,7 +64,6 @@ Route::prefix('v1')->group(function () {
         // Autres ressources protégées
         Route::apiResource('utilisateurs', UtilisateurController::class);
         Route::apiResource('organismes', OrganismeController::class);
-        Route::apiResource('categories', CategorieController::class);
         Route::apiResource('medias', MediaController::class);
         Route::apiResource('notifications', NotificationController::class);
         Route::apiResource('visiteurs', VisiteurController::class);
