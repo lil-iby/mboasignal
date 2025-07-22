@@ -206,11 +206,11 @@
       <div class="form-row">
         <div class="form-group">
           <label for="password">Mot de passe *</label>
-          <input type="password" id="password" name="password" required minlength="8">
+          <input type="password" id="password" name="pass_utilisateur" required minlength="8">
         </div>
         <div class="form-group">
           <label for="password_confirmation">Confirmer le mot de passe *</label>
-          <input type="password" id="password_confirmation" name="password_confirmation" required>
+          <input type="password" id="password_confirmation" name="pass_utilisateur_confirmation" required>
         </div>
       </div>
       
@@ -274,9 +274,9 @@
           prenom_utilisateur: document.getElementById('prenom').value,
           email_utilisateur: document.getElementById('email').value,
           pass_utilisateur: password,
+          pass_utilisateur_confirmation: passwordConfirm,
           tel_utilisateur: document.getElementById('telephone').value,
-          type_utilisateur: document.getElementById('type_utilisateur').value,
-          password_confirmation: passwordConfirm
+          type_utilisateur: document.getElementById('type_utilisateur').value
         };
         
         // Désactiver le bouton pendant la requête
@@ -300,7 +300,7 @@
         } catch (error) {
           console.error('Erreur lors de l\'inscription:', error);
           
-          // Afficher le message d'erreur
+          // Afficher le 
           errorMessage.textContent = error.message || 'Une erreur est survenue lors de l\'inscription';
           errorMessage.style.display = 'block';
           

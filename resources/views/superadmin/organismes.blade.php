@@ -139,11 +139,12 @@
                         })
                       });
                       if (!res.ok) {
+                        showPopover("Erreur lors de la modification du statut", 'error');
                         return;
                       }
                       await fetchAndRenderOrganismes();
                     } catch (e) {
-                      alert("Erreur réseau : " + e.message);
+                      console.error("Erreur réseau : " + e.message);
                     }
                   }
                 });
@@ -265,7 +266,7 @@
 
       // Validation des données
       if (!data.nom_organisme || !data.adresse_organisme || !data.tel_organisme || !data.email_organisme) {
-        alert('Veuillez remplir tous les champs obligatoires');
+        ;
         return;
       }
 
@@ -321,17 +322,15 @@
               }
             });
           } else {
-            alert(`Erreur ${response.status}: ${responseData.message || 'Erreur lors de l\'enregistrement de l\'organisme'}`);
+            showPopover(responseData.message || 'Erreur lors de l\'enregistrement de l\'organisme', 'error');
           }
           return;
         }
 
         hideOrganismeModal();
         await fetchAndRenderOrganismes();
-        alert(id ? 'Organisme mis à jour avec succès' : 'Organisme créé avec succès');
       } catch (e) {
-        console.error('Erreur lors de la requête:', e);
-        alert('Erreur réseau: ' + e.message);
+        showPopover('Erreur lors de la requête: ' + e.message, 'error');
       }
     };
     // Suppression
@@ -361,28 +360,111 @@
         hideDeleteOrganismeModal();
         fetchAndRenderOrganismes();
       } catch (e) {
-        alert('Erreur lors de la suppression');
         hideDeleteOrganismeModal();
       }
     };
     </script>
 
   </section>
-  @include('superadmin.partials.confirm_statut_modal')
-@include('superadmin.partials.confirm_statut_modal_js')
-</main>
+  <style>
+  /* Styles existants */
+  .modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center; }
+  .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 0 5px; }
+  .btn-primary { background: #007bff; color: white; }
+  .btn-danger { background: #dc3545; color: white; }
+  
+  /* Styles pour les popovers */
+  .popover {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 5px;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 1100;
+    animation: slideIn 0.3s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .popover.success { background-color: #28a745; }
+  .popover.error { background-color: #dc3545; }
+  .popover.warning { background-color: #ffc107; color: #212529; }
+  
+  .popover-close {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 10px;
+  }
+  
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+</style>
+  <script>
+    // Fonction pour afficher les popovers
+    function showPopover(message, type = 'success') {
+      // Supprimer les popovers existants
+      document.querySelectorAll('.popover').forEach(el => el.remove());
+      
+      // Créer le popover
+      const popover = document.createElement('div');
+      popover.className = `popover ${type}`;
+      
+      // Icône en fonction du type
+      let icon = '✓';
+      if (type === 'error') icon = '✗';
+      else if (type === 'warning') icon = '!';
+      
+      popover.innerHTML = `
+        <span>${icon}</span>
+        <span>${message}</span>
+        <button class="popover-close">&times;</button>
+      `;
+      
+      // Ajouter le popover au document
+      document.body.appendChild(popover);
+      
+      // Fermer le popover au clic sur le bouton de fermeture
+      const closeBtn = popover.querySelector('.popover-close');
+      closeBtn.addEventListener('click', () => {
+        popover.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => popover.remove(), 300);
+      });
+      
+      // Fermer automatiquement après 5 secondes
+      setTimeout(() => {
+        if (popover.parentNode) {
+          popover.style.animation = 'fadeOut 0.3s ease-out';
+          setTimeout(() => popover.remove(), 300);
+        }
+      }, 5000);
+    }
+    
+    // Script de débogage temporaire
+    window.addEventListener('DOMContentLoaded', function() {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]');
+      console.log('CSRF Token element:', csrfToken);
+      if (csrfToken) {
+        console.log('CSRF Token value:', csrfToken.getAttribute('content'));
+      } else {
+        console.error('Aucune balise meta CSRF trouvée dans le document');
+      }
+    });
+</script>
+
+  </main>
 
 @include('includes.footer')
-
-<script>
-// Script de débogage temporaire
-window.addEventListener('DOMContentLoaded', function() {
-  const csrfToken = document.querySelector('meta[name="csrf-token"]');
-  console.log('CSRF Token element:', csrfToken);
-  if (csrfToken) {
-    console.log('CSRF Token value:', csrfToken.getAttribute('content'));
-  } else {
-    console.error('Aucune balise meta CSRF trouvée dans le document');
-  }
-});
-</script>
