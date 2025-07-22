@@ -1,19 +1,66 @@
 <script>
+document.addEventListener('DOMContentLoaded', function() {
   const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   const type = localStorage.getItem('type_utilisateur');
   if (!type) {
     window.location.href = '/login';
+    return;
   } else if (type !== 'superadmin') {
     window.location.href = '/unauthorized';
+    return;
   }
+  const btnAddUser = document.getElementById('btn-add-user');
+  if (btnAddUser) {
+    btnAddUser.style.display = 'inline-block';
+    btnAddUser.onclick = function() {
+      document.getElementById('createUtilisateurForm').reset();
+      document.getElementById('createUtilisateurErrors').textContent = '';
+      document.getElementById('createUtilisateurModal').style.display = 'flex';
+    };
+  }
+  // Soumission création utilisateur
+  document.getElementById('createUtilisateurForm').onsubmit = async function(e) {
+    e.preventDefault();
+    const token = localStorage.getItem('auth_token');
+    const data = {
+      prenom_utilisateur: document.getElementById('createPrenomUtilisateur').value,
+      nom_utilisateur: document.getElementById('createNomUtilisateur').value,
+      email_utilisateur: document.getElementById('createEmailUtilisateur').value,
+      tel_utilisateur: document.getElementById('createTelUtilisateur').value,
+      type_utilisateur: document.getElementById('createTypeUtilisateur').value,
+      pass_utilisateur: document.getElementById('createPasswordUtilisateur').value,
+      pass_utilisateur_confirmation: document.getElementById('createPasswordUtilisateurConfirm').value
+    };
+    const res = await fetch('/api/v1/utilisateurs', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': csrfToken
+      },
+      body: JSON.stringify(data)
+    });
+    if (res.status === 422) {
+      const err = await res.json();
+      document.getElementById('createUtilisateurErrors').textContent = Object.values(err.errors).join(' ');
+      return;
+    }
+    document.getElementById('createUtilisateurModal').style.display = 'none';
+    fetchAndRenderUsers();
+  };
+});
 </script>
 <body>
 @include('includes.header')
 @include('includes.sidebar_superadmin')
 
 <main class="content">
-  <header class="page-header">
-    <h1>Gestion des utilisateurs</h1>
+  <header class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+    <div style="display:flex;align-items:center;gap:1.5rem;">
+      <h1>Gestion des utilisateurs</h1>
+    </div>
     <div class="user-info">
       <span class="user-avatar" id="user-avatar"></span>
       <span id="user-name"></span>
@@ -31,6 +78,11 @@
 
   <section>
     <h2>Liste des utilisateurs</h2>
+    <div style="margin-bottom: 1rem;">
+      <button id="btn-add-user-table" title="Créer un utilisateur" style="display:none; background:#007bff; color:#fff; border:none; border-radius:5px; padding:10px 15px; font-size:1rem; cursor:pointer;">
+        + Créer un utilisateur
+      </button>
+    </div>
     <div class="table-wrapper">
       <table class="styled-table">
         <thead>
@@ -52,6 +104,7 @@
 @include('superadmin.partials.confirm_statut_utilisateur_modal')
 @include('superadmin.partials.confirm_statut_utilisateur_modal_js')
 @include('superadmin.partials.edit_utilisateur_modal')
+@include('superadmin.partials.create_utilisateur_modal')
 </main>
 
 <!-- Modals -->
