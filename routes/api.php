@@ -43,6 +43,10 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('signalements', SignalementController::class);
     Route::get('/signalements/stats/etat', [SignalementController::class, 'statsParEtat']);
     Route::get('/mes-signalements', [SignalementController::class, 'byOrganisme']);
+    
+    // Routes publiques pour les catégories
+    Route::get('/categories', [CategorieController::class, 'index']);
+    Route::post('/categories', [CategorieController::class, 'store']);
 
     // Routes protégées par authentification Sanctum
     Route::middleware(['auth:sanctum'])->group(function () {
