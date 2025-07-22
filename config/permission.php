@@ -146,6 +146,11 @@ return [
     'team_resolver' => \Spatie\Permission\DefaultTeamResolver::class,
 
     /*
+     * The default guard to use for authorization.
+     */
+    'default_guard' => 'web',
+
+    /*
      * Passport Client Credentials Grant
      * When set to true the package will use Passports Client to check permissions
      */

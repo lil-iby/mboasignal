@@ -16,8 +16,8 @@ class SuperAdminSeeder extends Seeder
      */
     public function run(): void
     {
-        // Utiliser le bon guard (celui défini dans config/auth.php pour l'API)
-        $guardName = config('auth.defaults.guard');
+        // Utiliser le guard 'web' qui est le guard par défaut pour l'interface d'administration
+        $guardName = 'web';
         
         // Créer les permissions si elles n'existent pas
         $permissions = [
@@ -42,7 +42,7 @@ class SuperAdminSeeder extends Seeder
         ]);
         
         // Donner toutes les permissions au rôle Super Admin
-        $superAdminRole->syncPermissions(Permission::all());
+        $superAdminRole->syncPermissions(Permission::where('guard_name', $guardName)->get());
 
         // Créer les utilisateurs super admin
         $superAdmins = [
