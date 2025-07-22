@@ -1,0 +1,63 @@
+services:
+  - type: web
+    name: mboasignal-laravel
+    env: docker
+    plan: free
+    repo: https://github.com/ton-utilisateur/ton-repo
+    branch: main
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: APP_NAME
+        value: Laravel
+      - key: APP_ENV
+        value: production
+      - key: APP_KEY
+        value: base64:U4qXLMDGog1q9cPWykQ46Xxcrp42wyOCTwXDyLG+RBU=
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        value: https://mboasignal.onrender.com
+
+      # PostgreSQL - Supabase
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        value: aws-0-eu-north-1.pooler.supabase.com
+      - key: DB_PORT
+        value: 6543
+      - key: DB_DATABASE
+        value: postgres
+      - key: DB_USERNAME
+        value: postgres.dfdxakqvkspxhoucrkke
+      - key: DB_PASSWORD
+        value: 1234Br@himier
+
+      # Session & Cache
+      - key: SESSION_DRIVER
+        value: database
+      - key: SESSION_LIFETIME
+        value: 120
+      - key: CACHE_STORE
+        value: database
+
+      # File Storage
+      - key: FILESYSTEM_DISK
+        value: local
+
+      # Queue
+      - key: QUEUE_CONNECTION
+        value: database
+
+      # Mail (log only)
+      - key: MAIL_MAILER
+        value: log
+      - key: MAIL_FROM_ADDRESS
+        value: hello@example.com
+      - key: MAIL_FROM_NAME
+        value: Laravel
+
+      # Redis (non utilisé ici mais défini)
+      - key: REDIS_HOST
+        value: 127.0.0.1
+      - key: REDIS_PORT
+        value: 6379
