@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         // Appeler les seeders dans le bon ordre pour respecter les contraintes de clé étrangère
         $this->call([
             RoleSeeder::class, // Ajout du seeder pour les rôles
+            SuperAdminSeeder::class, // Création des super administrateurs
             CategoriesTableSeeder::class,
             OrganismesTableSeeder::class,
             UtilisateursTableSeeder::class,
