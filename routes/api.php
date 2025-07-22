@@ -35,7 +35,7 @@ Route::prefix('v1')->group(function () {
         return response()->json(['message' => 'API v1 est opérationnelle']);
     });
 
-        // Routes d'authentification publiques
+    // Routes d'authentification publiques
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
 
