@@ -204,7 +204,7 @@ class SignalementController extends Controller
             'description_signalement' => $request->description_signalement,
             'localisation_signalement' => $request->localisation_signalement,
             'date_enregistrement' => now(),
-            'etat_signalement' => $request->etat_signalement,
+            'etat_signalement' => 'en_cours',
             'statut_signalement' => 'nouveau',
             'id_categorie' => $request->categorie_id,
             'id_utilisateur' => $user ? $user->id_utilisateur : null,
