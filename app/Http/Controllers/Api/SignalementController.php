@@ -19,13 +19,6 @@ class SignalementController extends Controller
      */
     public function statsParEtat()
     {
-        if (!auth('api')->check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Authentification requise. Token manquant ou invalide.'
-            ], 401);
-        }
-
         $stats = Signalement::selectRaw('etat_signalement, COUNT(*) as total')
             ->groupBy('etat_signalement')
             ->get()
@@ -148,33 +141,27 @@ class SignalementController extends Controller
      * 
      * @return \Illuminate\Http\JsonResponse
      */
-    public function byOrganisme()
+    public function byOrganisme(Request $request)
     {
-        $user = auth('api')->user();
-        
-        if (!$user) {
+        // Si un organisme_id est fourni, l'utiliser, sinon retourner tous les signalements
+        if ($request->has('organisme_id')) {
+            $signalements = Signalement::where('organisme_id', $request->organisme_id)
+                ->with(['utilisateurs', 'categorie', 'medias'])
+                ->get();
+                
             return response()->json([
-                'success' => false,
-                'message' => 'Authentification requise. Token manquant ou invalide.'
-            ], 401);
+                'success' => true,
+                'data' => $signalements
+            ]);
         }
         
-        // Vérifier si l'utilisateur a un organisme associé
-        if (!$user->organisme_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Aucun organisme associé à cet utilisateur.'
-            ], 403);
-        }
+        // Si aucun organisme_id n'est fourni, retourner tous les signalements
+        $signalements = Signalement::with(['utilisateurs', 'categorie', 'medias'])->get();
         
-        // Récupérer les signalements de l'organisme de l'utilisateur
-        $signalements = Signalement::where('organisme_id', $user->organisme_id)
-            ->with(['utilisateurs', 'categorie', 'medias'])
-            ->get();
-            
         return response()->json([
             'success' => true,
-            'data' => $signalements
+            'data' => $signalements,
+            'message' => 'Aucun organisme_id fourni. Retour de tous les signalements.'
         ]);
         return response()->json($signalements);
     }
@@ -214,16 +201,10 @@ class SignalementController extends Controller
             ], 422);
         }
 
-        // Vérifier l'authentification si un token est fourni
+        // Gestion des utilisateurs authentifiés (optionnel)
         $user = null;
         if ($request->bearerToken()) {
             $user = auth('api')->user();
-            if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Token invalide ou expiré.'
-                ], 401);
-            }
         }
 
         // Préparer les données du signalement
@@ -248,7 +229,7 @@ class SignalementController extends Controller
             // Création du signalement
             $signalement = Signalement::create($data);
             
-            // Attacher l'utilisateur authentifié au signalement
+            // Attacher l'utilisateur au signalement s'il est authentifié
             if ($user) {
                 $signalement->utilisateurs()->attach($user->id_utilisateur);
             }
@@ -393,12 +374,6 @@ class SignalementController extends Controller
 
     public function update(Request $request, $id)
     {
-        if (!auth('api')->check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Authentification requise. Token manquant ou invalide.'
-            ], 401);
-        }
         
         $signalement = Signalement::findOrFail($id);
         
@@ -464,12 +439,6 @@ class SignalementController extends Controller
 
     public function destroy($id)
     {
-        if (!auth('api')->check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Authentification requise. Token manquant ou invalide.'
-            ], 401);
-        }
         
         // Démarrer une transaction
         DB::beginTransaction();
