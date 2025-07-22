@@ -32,6 +32,7 @@ Route::prefix('v1')->group(function () {
     // Route de test pour v1 (publique)
     Route::get('/test', function () {
         return response()->json(['message' => 'API v1 est opérationnelle']);
+        Route::post('/signalements', [SignalementController::class, 'store']);
     });
     
     // Routes d'authentification publiques
@@ -45,7 +46,6 @@ Route::prefix('v1')->group(function () {
     // Routes protégées par authentification
     Route::middleware(['auth:sanctum'])->group(function () {
         // Routes pour les signalements (écriture)
-        Route::post('/signalements', [SignalementController::class, 'store']);
         Route::put('/signalements/{signalement}', [SignalementController::class, 'update']);
         Route::delete('/signalements/{signalement}', [SignalementController::class, 'destroy']);
         // Route de déconnexion
