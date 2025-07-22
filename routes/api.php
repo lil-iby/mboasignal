@@ -29,7 +29,7 @@ Route::get('/test', function () {
 
 // Groupe de version v1 avec préfixe
 Route::prefix('v1')->group(function () {
-    // Route de test pour v1
+    // Route de test pour v1 (publique)
     Route::get('/test', function () {
         return response()->json(['message' => 'API v1 est opérationnelle']);
     });
@@ -39,7 +39,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
 
     // Routes protégées par authentification
-    Route::middleware('auth:api')->group(function () {
+    Route::middleware(['auth:sanctum'])->group(function () {
         // Route de déconnexion
         Route::post('/logout', [AuthController::class, 'logout']);
         
@@ -54,26 +54,30 @@ Route::prefix('v1')->group(function () {
             Route::get('/usage-stats', [DashboardController::class, 'usageStats']);
         });
         
-        // Routes pour les signalements
-        Route::apiResource('signalements', SignalementController::class);
+        // Routes pour les signalements (protégées)
+        Route::apiResource('signalements', SignalementController::class)->except(['index', 'show']);
         Route::get('/signalements/stats/etat', [SignalementController::class, 'statsParEtat']);
         Route::get('/mes-signalements', [SignalementController::class, 'byOrganisme']);
         
-        // Routes pour les utilisateurs
+        // Routes pour les utilisateurs (protégées)
         Route::apiResource('utilisateurs', UtilisateurController::class);
         
-        // Routes pour les organismes
+        // Routes pour les organismes (protégées)
         Route::apiResource('organismes', OrganismeController::class);
         
-        // Autres ressources
+        // Autres ressources (protégées)
         Route::apiResource('categories', CategorieController::class);
         Route::apiResource('medias', MediaController::class);
         Route::apiResource('notifications', NotificationController::class);
         Route::apiResource('visiteurs', VisiteurController::class);
         
-        // Route de test
+        // Route de test protégée
         Route::get('/ping', function () {
-            return response()->json(['message' => 'API v1 fonctionne']);
+            return response()->json(['message' => 'API v1 fonctionne avec authentification']);
         });
     });
+    
+    // Routes publiques pour les signalements (lecture seule)
+    Route::get('/signalements', [SignalementController::class, 'index']);
+    Route::get('/signalements/{signalement}', [SignalementController::class, 'show']);
 });

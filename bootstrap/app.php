@@ -17,10 +17,14 @@ return Application::configure(basePath: dirname(__DIR__))
         
         $middleware->api([
             \Illuminate\Http\Middleware\HandleCors::class,
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            \Illuminate\Http\Middleware\SetCacheHeaders::class,
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
+        
+        // Désactiver le middleware web pour les routes API
+        $middleware->web(\Illuminate\Session\Middleware\StartSession::class);
+        $middleware->web(\Illuminate\View\Middleware\ShareErrorsFromSession::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Gestion des exceptions

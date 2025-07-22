@@ -39,24 +39,99 @@ class SignalementController extends Controller
         ]);
     }
     /**
-     * Récupère tous les signalements avec leurs relations
+     * Récupère la liste des signalements avec filtrage, tri et pagination
      * 
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index()
+    public function index(Request $request)
     {
-        if (!auth('api')->check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Authentification requise. Token manquant ou invalide.'
-            ], 401);
+        // Vérifier si l'utilisateur est authentifié (optionnel selon les besoins)
+        $user = auth('api')->user();
+        
+        // Initialiser la requête avec les relations
+        $query = Signalement::with(['utilisateur' => function($q) {
+            $q->select('id_utilisateur', 'nom_utilisateur', 'prenom_utilisateur', 'email_utilisateur');
+        }, 'categorie', 'organisme', 'medias']);
+        
+        // Filtrage par état
+        if ($request->has('etat')) {
+            $query->where('etat_signalement', $request->etat);
         }
         
-        $signalements = Signalement::with(['utilisateurs', 'categorie', 'medias'])->get();
+        // Filtrage par catégorie
+        if ($request->has('categorie_id')) {
+            $query->where('id_categorie', $request->categorie_id);
+        }
         
+        // Filtrage par organisme (pour les utilisateurs authentifiés avec un organisme)
+        if ($user && $user->organisme_id) {
+            $query->where('id_organisme', $user->organisme_id);
+        } elseif ($request->has('organisme_id')) {
+            // Permettre le filtrage par organisme_id si spécifié (pour les administrateurs)
+            $query->where('id_organisme', $request->organisme_id);
+        }
+        
+        // Filtrage par date
+        if ($request->has('date_debut')) {
+            $query->where('date_signalement', '>=', $request->date_debut);
+        }
+        
+        if ($request->has('date_fin')) {
+            $query->where('date_signalement', '<=', $request->date_fin . ' 23:59:59');
+        }
+        
+        // Recherche par mot-clé
+        if ($request->has('recherche')) {
+            $searchTerm = '%' . $request->recherche . '%';
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('nom_signalement', 'LIKE', $searchTerm)
+                  ->orWhere('description_signalement', 'LIKE', $searchTerm)
+                  ->orWhere('localisation_signalement', 'LIKE', $searchTerm);
+            });
+        }
+        
+        // Tri
+        $sortField = $request->input('tri_champ', 'date_signalement');
+        $sortOrder = $request->input('tri_ordre', 'desc');
+        
+        // Vérifier que le champ de tri est autorisé
+        $allowedSortFields = ['date_signalement', 'date_enregistrement', 'etat_signalement', 'nom_signalement'];
+        if (!in_array($sortField, $allowedSortFields)) {
+            $sortField = 'date_signalement';
+        }
+        
+        // Appliquer le tri
+        $query->orderBy($sortField, $sortOrder === 'asc' ? 'asc' : 'desc');
+        
+        // Pagination
+        $perPage = $request->input('par_page', 10);
+        $perPage = min(max(1, $perPage), 100); // Limiter entre 1 et 100 éléments par page
+        
+        $signalements = $query->paginate($perPage);
+        
+        // Formater la réponse
         return response()->json([
             'success' => true,
-            'data' => $signalements
+            'data' => $signalements->items(),
+            'pagination' => [
+                'total' => $signalements->total(),
+                'per_page' => $signalements->perPage(),
+                'current_page' => $signalements->currentPage(),
+                'last_page' => $signalements->lastPage(),
+                'from' => $signalements->firstItem(),
+                'to' => $signalements->lastItem(),
+            ],
+            'filters' => [
+                'etat' => $request->etat,
+                'categorie_id' => $request->categorie_id,
+                'organisme_id' => $request->organisme_id,
+                'date_debut' => $request->date_debut,
+                'date_fin' => $request->date_fin,
+                'recherche' => $request->recherche,
+                'tri_champ' => $sortField,
+                'tri_ordre' => $sortOrder,
+            ]
         ]);
     }
     
