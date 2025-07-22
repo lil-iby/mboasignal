@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring xml gd zip bcmath \
     && apt-get clean
 
+RUN docker-php-ext-install pdo_pgsql
 # Enable Apache rewrite module
 RUN a2enmod rewrite
 
@@ -16,7 +17,6 @@ WORKDIR /var/www/html
 # Copy Laravel app files
 COPY . .
 
-RUN docker-php-ext-install pdo_pgsql
 
 # Install Composer dependencies
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
