@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller as BaseController;
-use App\Models\Utilisateur;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -32,7 +32,7 @@ class AuthController extends BaseController
         $validator = Validator::make($request->all(), [
             'nom_utilisateur' => 'required|string|max:255',
             'prenom_utilisateur' => 'required|string|max:255',
-            'email_utilisateur' => 'required|string|email|max:255|unique:utilisateurs',
+            'email_utilisateur' => 'required|string|email|max:255|unique:users',
             'pass_utilisateur' => 'required|string|min:6|confirmed',
             'tel_utilisateur' => 'required|string|max:20',
             'type_utilisateur' => 'required|string|in:admin,superadmin,citoyen,technicien',
@@ -42,7 +42,7 @@ class AuthController extends BaseController
             return response()->json($validator->errors(), 422);
         }
 
-        $user = Utilisateur::create([
+        $user = User::create([
             'nom_utilisateur' => $request->nom_utilisateur,
             'prenom_utilisateur' => $request->prenom_utilisateur,
             'email_utilisateur' => $request->email_utilisateur,
@@ -74,48 +74,49 @@ class AuthController extends BaseController
             'password' => 'required|string',
         ]);
 
-        // Récupérer l'utilisateur par email
-        $user = \App\Models\Utilisateur::where('email_utilisateur', $request->email_utilisateur)->first();
-
-        // Vérifier si l'utilisateur existe et que le mot de passe est correct
-        if ($user && \Illuminate\Support\Facades\Hash::check($request->password, $user->pass_utilisateur)) {
-            // Créer un nouveau token pour l'utilisateur
-            $token = $user->createToken('auth_token')->plainTextToken;
-            
-            // Mettre à jour la date de dernière connexion
-            $user->update([
-                'derniere_connexion' => now(),
-                'statut_en_ligne' => true
-            ]);
-            
+        // Vérifier les identifiants avec le guard web
+        if (!Auth::attempt([
+            'email_utilisateur' => $request->email_utilisateur,
+            'password' => $request->password,
+            'etat_compte' => 'activé'
+        ])) {
             return response()->json([
-                'status' => 'success',
-                'message' => 'Connexion réussie',
-                'data' => [
-                    'user' => [
-                        'id' => $user->id_utilisateur,
-                        'nom' => $user->nom_utilisateur,
-                        'prenom' => $user->prenom_utilisateur,
-                        'email' => $user->email_utilisateur,
-                        'type_utilisateur' => $user->type_utilisateur,
-                        'statut_en_ligne' => $user->statut_en_ligne,
-                        'derniere_connexion' => $user->derniere_connexion,
-                    ],
-                    'authorization' => [
-                        'token' => $token,
-                        'type' => 'bearer',
-                        'expires_in' => config('sanctum.expiration', 60 * 24 * 7) // en minutes
-                    ]
+                'message' => 'Identifiants invalides ou compte désactivé',
+                'errors' => [
+                    'email_utilisateur' => ['Ces identifiants ne correspondent pas à nos enregistrements.']
                 ]
-            ], 200);
+            ], 401);
         }
 
+        // Récupérer l'utilisateur authentifié
+        $user = Auth::user();
+
+        // Mettre à jour la date de dernière connexion
+        $user->update([
+            'derniere_connexion' => now(),
+            'statut_en_ligne' => true
+        ]);
+
+        // Créer un nouveau token d'API pour l'utilisateur
+        $token = $user->createToken('auth_token')->plainTextToken;
+        
         return response()->json([
-            'message' => 'Identifiants invalides',
-            'errors' => [
-                'email_utilisateur' => ['Ces identifiants ne correspondent pas à nos enregistrements.']
+            'status' => 'success',
+            'user' => [
+                'id' => $user->id_utilisateur,
+                'nom' => $user->nom_utilisateur,
+                'prenom' => $user->prenom_utilisateur,
+                'email' => $user->email_utilisateur,
+                'type_utilisateur' => $user->type_utilisateur,
+                'statut_en_ligne' => $user->statut_en_ligne,
+                'derniere_connexion' => $user->derniere_connexion,
+            ],
+            'authorization' => [
+                'token' => $token,
+                'type' => 'bearer',
+                'expires_in' => config('sanctum.expiration', 60 * 24 * 7) // en minutes
             ]
-        ], 422);
+        ]);
     }
 
     /**
@@ -135,7 +136,7 @@ class AuthController extends BaseController
      */
     public function logout()
     {
-        $user = Auth::user();
+        $user = Auth::guard('web')->user();
         $user->currentAccessToken()->delete();
         
         return response()->json(['message' => 'Successfully logged out']);
@@ -148,7 +149,7 @@ class AuthController extends BaseController
      */
     public function refresh()
     {
-        $user = Auth::user();
+        $user = Auth::guard('web')->user();
         $user->tokens()->delete();
         $token = $user->createToken('auth_token')->plainTextToken;
         

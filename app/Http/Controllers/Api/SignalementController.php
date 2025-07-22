@@ -96,88 +96,53 @@ class SignalementController extends Controller
         return response()->json($signalements);
     }
 
+    /**
+     * Enregistre un nouveau signalement
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function store(Request $request)
     {
-        // Vérifier si l'utilisateur est authentifié
-        if (!auth('api')->check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Authentification requise. Token manquant ou invalide.'
-            ], 401);
-        }
-
-        // Vérifier si la requête est en JSON
-        $isJsonRequest = $request->isJson();
-        $jsonData = [];
-        $uploadedFiles = [];
-
-        if ($isJsonRequest) {
-            $jsonData = $request->json()->all();
-            $request->merge($jsonData);
-            
-            // Si des fichiers sont envoyés en base64 dans le JSON
-            if (isset($jsonData['fichiers']) && is_array($jsonData['fichiers'])) {
-                foreach ($jsonData['fichiers'] as $index => $fileData) {
-                    if (isset($fileData['contenu_base64']) && isset($fileData['nom_fichier'])) {
-                        $filePath = $this->saveBase64File($fileData['contenu_base64'], $fileData['nom_fichiler']);
-                        $uploadedFiles[] = new \Illuminate\Http\UploadedFile(
-                            $filePath,
-                            $fileData['nom_fichier'],
-                            mime_content_type($filePath),
-                            null,
-                            true
-                        );
-                    }
-                }
-                $request->files->set('fichiers', $uploadedFiles);
-            }
-        }
-
-        // Règles de validation de base
+        // Règles de validation
         $rules = [
             'titre_signalement' => 'required|string|max:255',
             'description_signalement' => 'required|string',
             'localisation_signalement' => 'required|string',
             'date_signalement' => 'required|date',
-            'etat_signalement' => 'required|string',
-            'utilisateur_id' => 'nullable|exists:utilisateurs,id_utilisateur',
+            'etat_signalement' => 'required|string|in:en_cours,traité,en_attente',
             'categorie_id' => 'required|exists:categories,id_categorie',
-            'id_organisme' => 'nullable|exists:organismes,id_organisme',
+            'organisme_id' => 'nullable|exists:organismes,id_organisme',
+            'fichiers' => 'nullable|array',
+            'fichiers.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240', // 10MB max par fichier
+            'token' => 'nullable|string', // Jeton optionnel
         ];
 
-        // Ajouter les règles pour les fichiers uniquement s'ils sont présents
-        if ($request->has('fichiers') || $request->hasFile('fichiers')) {
-            $rules['fichiers'] = 'array';
-            $rules['fichiers.*'] = [
-                function ($attribute, $value, $fail) {
-                    if ($value !== null && 
-                        !($value instanceof \Illuminate\Http\UploadedFile) && 
-                        !is_string($value)) {
-                        $fail('Le fichier doit être un fichier valide ou une chaîne base64.');
-                    }
-                },
-                'max:10240' // 10MB max par fichier
-            ];
-        }
-
+        // Valider les données
         $validator = Validator::make($request->all(), $rules, [
             'fichiers.*.max' => 'Chaque fichier ne doit pas dépasser 10MB',
+            'fichiers.*.mimes' => 'Les types de fichiers autorisés sont : jpg, jpeg, png, pdf, doc, docx',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        // Récupérer l'utilisateur authentifié
-        $user = auth('api')->user();
-        
-        if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Utilisateur non authentifié.'
-            ], 401);
+                'errors' => $validator->errors()
+            ], 422);
         }
-        
+
+        // Vérifier l'authentification si un token est fourni
+        $user = null;
+        if ($request->bearerToken()) {
+            $user = auth('api')->user();
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Token invalide ou expiré.'
+                ], 401);
+            }
+        }
+
         // Préparer les données du signalement
         $data = [
             'nom_signalement' => $request->titre_signalement,
@@ -187,8 +152,10 @@ class SignalementController extends Controller
             'etat_signalement' => $request->etat_signalement,
             'statut_signalement' => 'nouveau',
             'id_categorie' => $request->categorie_id,
-            'id_organisme' => $request->id_organisme,
+            'id_utilisateur' => $user ? $user->id_utilisateur : null,
+            'id_organisme' => $request->organisme_id ?? ($user ? $user->organisme_id : null),
             'date_signalement' => $request->date_signalement,
+            'token' => $request->token, // Stocker le jeton s'il est fourni
         ];
         
         // Démarrer une transaction pour s'assurer que tout se passe bien
@@ -199,29 +166,52 @@ class SignalementController extends Controller
             $signalement = Signalement::create($data);
             
             // Attacher l'utilisateur authentifié au signalement
-            $signalement->utilisateurs()->attach($user->id_utilisateur);
+            if ($user) {
+                $signalement->utilisateurs()->attach($user->id_utilisateur);
+            }
 
             // Gestion du téléversement des fichiers
             if ($request->hasFile('fichiers')) {
-                foreach ($request->file('fichiers') as $fichier) {
-                    $extension = $fichier->getClientOriginalExtension();
-                    $nomFichier = 'signalement_' . $signalement->id . '_' . uniqid() . '.' . $extension;
+                foreach ($request->file('fichiers') as $file) {
+                    // Créer un nom de fichier unique
+                    $extension = $file->getClientOriginalExtension();
+                    $nomFichier = 'signalement_' . $signalement->id_signalement . '_' . uniqid() . '.' . $extension;
                     
-                    // Stocker le fichier dans le dossier public/signalements
-                    $chemin = $fichier->storeAs('public/signalements', $nomFichier);
+                    // Stocker le fichier
+                    $chemin = $file->storeAs('public/signalements', $nomFichier);
                     $url = Storage::url($chemin);
                     
-                    // Déterminer le type de média en fonction de l'extension
+                    // Déterminer le type de média
                     $typeMedia = $this->determinerTypeMedia($extension);
-
-                    Media::create([
-                        'fichier' => $nomFichier,
-                        'nom_media' => $fichier->getClientOriginalName(),
+                    
+                    // Créer l'entrée média
+                    $media = new Media([
+                        'nom_media' => $file->getClientOriginalName(),
                         'chemin_media' => $chemin,
                         'url_media' => $url,
                         'type_media' => $typeMedia,
-                        'signalement_id' => $signalement->id_signalement,
+                        'taille_media' => $file->getSize(),
                     ]);
+                    
+                    $signalement->medias()->save($media);
+                }
+            }
+            
+            // Gestion des fichiers en base64
+            if ($request->has('fichiers_base64') && is_array($request->fichiers_base64)) {
+                foreach ($request->fichiers_base64 as $fileData) {
+                    if (isset($fileData['contenu_base64']) && isset($fileData['nom_fichier'])) {
+                        $filePath = $this->saveBase64File($fileData['contenu_base64'], $fileData['nom_fichier']);
+                        
+                        $media = new Media([
+                            'nom_media' => $fileData['nom_fichier'],
+                            'chemin_media' => $filePath,
+                            'type_media' => mime_content_type($filePath),
+                            'taille_media' => filesize($filePath),
+                        ]);
+                        
+                        $signalement->medias()->save($media);
+                    }
                 }
             }
 

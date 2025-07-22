@@ -17,10 +17,34 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'utilisateurs';
+
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id_utilisateur';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'nom_utilisateur',
+        'prenom_utilisateur',
+        'email_utilisateur',
+        'pass_utilisateur',
+        'type_utilisateur',
+        'tel_utilisateur',
+        'etat_compte',
+        'photo_utilisateur'
     ];
 
     /**
@@ -28,11 +52,44 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
     protected $hidden = [
-        'password',
+        'pass_utilisateur',
         'remember_token',
+        'tokenid',
+        'day_token',
+        'hour_token'
     ];
 
+    /**
+     * Get the password for the user.
+     *
+     * @return string
+     */
+    public function getAuthPassword()
+    {
+        return $this->pass_utilisateur;
+    }
+
+    /**
+     * Get the name of the unique identifier for the user.
+     *
+     * @return string
+     */
+    public function getAuthIdentifierName()
+    {
+        return 'id_utilisateur';
+    }
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     /**
      * The attributes that should be cast.
      *
@@ -40,6 +97,27 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'pass_utilisateur' => 'hashed',
+        'statut_en_ligne' => 'boolean',
     ];
+
+    /**
+     * Get the name of the unique identifier for the user.
+     *
+     * @return string
+     */
+    public function getEmailForPasswordReset()
+    {
+        return $this->email_utilisateur;
+    }
+
+    /**
+     * Get the name of the unique identifier for the user.
+     *
+     * @return string
+     */
+    public function getEmailForVerification()
+    {
+        return $this->email_utilisateur;
+    }
 }
