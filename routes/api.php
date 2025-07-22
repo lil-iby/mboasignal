@@ -68,6 +68,7 @@ Route::prefix('v1')->group(function () {
         });
 
         // Ressources protégées
+        Route::apiResource('signalements', SignalementController::class);
         Route::apiResource('utilisateurs', UtilisateurController::class);
         Route::apiResource('organismes', OrganismeController::class);
         Route::apiResource('categories', CategorieController::class);

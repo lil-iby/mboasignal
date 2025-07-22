@@ -44,6 +44,106 @@ class SignalementController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
+    /**
+     * Store a newly created signalement in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function store(Request $request)
+    {
+        // Vérifier si l'utilisateur est authentifié
+        $user = auth('api')->user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Authentification requise. Token manquant ou invalide.'
+            ], 401);
+        }
+
+        // Valider les données de la requête
+        $validator = Validator::make($request->all(), [
+            'nom_signalement' => 'required|string|max:255',
+            'description_signalement' => 'required|string',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'id_categorie' => 'required|exists:categories,id_categorie',
+            'id_organisme' => 'required|exists:organismes,id_organisme',
+            'medias.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,avi,mov|max:10240' // Max 10MB
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de validation',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Démarrer une transaction de base de données
+        DB::beginTransaction();
+        
+        try {
+            // Créer le signalement
+            $signalement = new Signalement([
+                'nom_signalement' => $request->nom_signalement,
+                'description_signalement' => $request->description_signalement,
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+                'etat_signalement' => 'nouveau',
+                'statut_signalement' => 'en_attente',
+                'id_categorie' => $request->id_categorie,
+                'id_organisme' => $request->id_organisme,
+                'utilisateur_id' => $user->id_utilisateur,
+                'date_enregistrement' => now(),
+                'date_modification' => now()
+            ]);
+
+            $signalement->save();
+
+            // Gérer les médias s'il y en a
+            if ($request->hasFile('medias')) {
+                foreach ($request->file('medias') as $file) {
+                    $path = $file->store('public/medias');
+                    
+                    $media = new Media([
+                        'nom_media' => $file->getClientOriginalName(),
+                        'chemin_media' => str_replace('public/', 'storage/', $path),
+                        'type_media' => $file->getClientMimeType(),
+                        'date_upload' => now()
+                    ]);
+                    
+                    $signalement->medias()->save($media);
+                }
+            }
+
+            // Valider la transaction
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Signalement créé avec succès',
+                'data' => $signalement->load('medias')
+            ], 201);
+
+        } catch (\Exception $e) {
+            // Annuler la transaction en cas d'erreur
+            DB::rollBack();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la création du signalement',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Récupère la liste des signalements avec filtrage, tri et pagination
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function index(Request $request)
     {
         // Vérifier si l'utilisateur est authentifié (optionnel selon les besoins)
