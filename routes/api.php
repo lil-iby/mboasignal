@@ -31,6 +31,7 @@ Route::get('/test', function () {
 Route::prefix('v1')->group(function () {
     // Route de test pour v1 (publique)
     Route::get('/test', function () {
+        Route::apiResource('signalements', SignalementController::class)->except(['index', 'show']);
         return response()->json(['message' => 'API v1 est opérationnelle']);
     });
     
@@ -55,7 +56,6 @@ Route::prefix('v1')->group(function () {
         });
         
         // Routes pour les signalements (protégées)
-        Route::apiResource('signalements', SignalementController::class)->except(['index', 'show']);
         Route::get('/signalements/stats/etat', [SignalementController::class, 'statsParEtat']);
         Route::get('/mes-signalements', [SignalementController::class, 'byOrganisme']);
         

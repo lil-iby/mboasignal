@@ -198,18 +198,35 @@ class AuthController extends BaseController
     }
 
     /**
-     * Refresh a token.
+     * Rafraîchit le token d'authentification
      *
      * @return \Illuminate\Http\JsonResponse
      */
     public function refresh()
     {
-        $user = Auth::guard('web')->user();
-        $user->tokens()->delete();
+        $user = Auth::user();
+        
+        // Récupérer le token actuel
+        $currentToken = $user->currentAccessToken();
+        
+        // Créer un nouveau token
         $token = $user->createToken('auth_token')->plainTextToken;
         
+        // Supprimer l'ancien token
+        $user->tokens()
+            ->where('id', $currentToken->id)
+            ->delete();
+        
         return response()->json([
-            'access_token' => $token
+            'success' => true,
+            'message' => 'Token rafraîchi avec succès',
+            'data' => [
+                'token' => [
+                    'access_token' => $token,
+                    'token_type' => 'bearer',
+                    'expires_in' => config('sanctum.expiration', 60 * 24 * 7) // en minutes
+                ]
+            ]
         ]);
     }
 }
