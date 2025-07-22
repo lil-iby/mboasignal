@@ -18,7 +18,7 @@ use App\Http\Controllers\Api\DashboardController;
 |--------------------------------------------------------------------------
 |
 | Ici vous pouvez enregistrer les routes de votre API. Elles seront
-| automatiquement préfixées par "/api/v1" grâce au middleware "api".
+| automatiquement préfixées par "/api" grâce au middleware "api".
 |
 */
 
@@ -29,62 +29,55 @@ Route::get('/test', function () {
 
 // Groupe de version v1 avec préfixe
 Route::prefix('v1')->group(function () {
+
     // Route de test pour v1 (publique)
     Route::get('/test', function () {
         return response()->json(['message' => 'API v1 est opérationnelle']);
-        Route::post('/signalement', [SignalementController::class, 'store']);
     });
-    
+
+    // ✅ Route POST /signalement accessible sans authentification
+    Route::post('/signalement', [SignalementController::class, 'store']);
+
     // Routes d'authentification publiques
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
 
-    // Routes pour les signalements (lecture seule)
-    // Route::get('/signalements', [SignalementController::class, 'index']);
+    // Routes publiques pour les signalements (lecture seule)
+    Route::get('/signalements', [SignalementController::class, 'index']);
     Route::get('/signalements/{signalement}', [SignalementController::class, 'show']);
 
-    // Routes protégées par authentification
+    // Routes protégées par authentification Sanctum
     Route::middleware(['auth:sanctum'])->group(function () {
-        // Routes pour les signalements (écriture)
+
+        // Routes pour les signalements (écriture/modification)
         Route::put('/signalements/{signalement}', [SignalementController::class, 'update']);
         Route::delete('/signalements/{signalement}', [SignalementController::class, 'destroy']);
-        // Route de déconnexion
+        Route::get('/signalements/stats/etat', [SignalementController::class, 'statsParEtat']);
+        Route::get('/mes-signalements', [SignalementController::class, 'byOrganisme']);
+
+        // Routes pour la session
         Route::post('/logout', [AuthController::class, 'logout']);
-        
-        // Routes d'authentification
         Route::get('/me', [AuthController::class, 'me']);
         Route::post('/refresh', [AuthController::class, 'refresh']);
-        
+
         // Tableau de bord
         Route::prefix('dashboard')->group(function () {
             Route::get('/stats', [DashboardController::class, 'stats']);
             Route::get('/recent-activities', [DashboardController::class, 'recentActivities']);
             Route::get('/usage-stats', [DashboardController::class, 'usageStats']);
         });
-        
-        // Routes pour les signalements (protégées)
-        Route::get('/signalements/stats/etat', [SignalementController::class, 'statsParEtat']);
-        Route::get('/mes-signalements', [SignalementController::class, 'byOrganisme']);
-        
-        // Routes pour les utilisateurs (protégées)
+
+        // Ressources protégées
         Route::apiResource('utilisateurs', UtilisateurController::class);
-        
-        // Routes pour les organismes (protégées)
         Route::apiResource('organismes', OrganismeController::class);
-        
-        // Autres ressources (protégées)
         Route::apiResource('categories', CategorieController::class);
         Route::apiResource('medias', MediaController::class);
         Route::apiResource('notifications', NotificationController::class);
         Route::apiResource('visiteurs', VisiteurController::class);
-        
+
         // Route de test protégée
         Route::get('/ping', function () {
             return response()->json(['message' => 'API v1 fonctionne avec authentification']);
         });
     });
-    
-    // Routes publiques pour les signalements (lecture seule)
-    Route::get('/signalements', [SignalementController::class, 'index']);
-    Route::get('/signalements/{signalement}', [SignalementController::class, 'show']);
 });
