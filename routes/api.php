@@ -35,26 +35,17 @@ Route::prefix('v1')->group(function () {
         return response()->json(['message' => 'API v1 est opérationnelle']);
     });
 
-    // ✅ Route POST /signalement accessible sans authentification
-    Route::post('/signalement', [SignalementController::class, 'store']);
-
-    // Routes d'authentification publiques
+        // Routes d'authentification publiques
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
 
-    // Routes publiques pour les signalements (lecture seule)
-    Route::get('/signalements', [SignalementController::class, 'index']);
-    Route::get('/signalements/{signalement}', [SignalementController::class, 'show']);
+    // Toutes les routes pour les signalements sont maintenant publiques
+    Route::apiResource('signalements', SignalementController::class);
+    Route::get('/signalements/stats/etat', [SignalementController::class, 'statsParEtat']);
+    Route::get('/mes-signalements', [SignalementController::class, 'byOrganisme']);
 
     // Routes protégées par authentification Sanctum
     Route::middleware(['auth:sanctum'])->group(function () {
-
-        // Routes pour les signalements (écriture/modification)
-        Route::put('/signalements/{signalement}', [SignalementController::class, 'update']);
-        Route::delete('/signalements/{signalement}', [SignalementController::class, 'destroy']);
-        Route::get('/signalements/stats/etat', [SignalementController::class, 'statsParEtat']);
-        Route::get('/mes-signalements', [SignalementController::class, 'byOrganisme']);
-
         // Routes pour la session
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
@@ -67,8 +58,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/usage-stats', [DashboardController::class, 'usageStats']);
         });
 
-        // Ressources protégées
-        Route::apiResource('signalements', SignalementController::class);
+        // Autres ressources protégées
         Route::apiResource('utilisateurs', UtilisateurController::class);
         Route::apiResource('organismes', OrganismeController::class);
         Route::apiResource('categories', CategorieController::class);
