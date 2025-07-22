@@ -47,9 +47,6 @@ class SignalementController extends Controller
      */
     public function index(Request $request)
     {
-        // Vérifier si l'utilisateur est authentifié (optionnel selon les besoins)
-        $user = auth('api')->user();
-        
         // Initialiser la requête avec les relations
         $query = Signalement::with(['utilisateur' => function($q) {
             $q->select('id_utilisateur', 'nom_utilisateur', 'prenom_utilisateur', 'email_utilisateur');
@@ -65,11 +62,8 @@ class SignalementController extends Controller
             $query->where('id_categorie', $request->categorie_id);
         }
         
-        // Filtrage par organisme (pour les utilisateurs authentifiés avec un organisme)
-        if ($user && $user->organisme_id) {
-            $query->where('id_organisme', $user->organisme_id);
-        } elseif ($request->has('organisme_id')) {
-            // Permettre le filtrage par organisme_id si spécifié (pour les administrateurs)
+        // Filtrage par organisme
+        if ($request->has('organisme_id')) {
             $query->where('id_organisme', $request->organisme_id);
         }
         
@@ -201,11 +195,8 @@ class SignalementController extends Controller
             ], 422);
         }
 
-        // Gestion des utilisateurs authentifiés (optionnel)
+        // L'utilisateur est optionnel pour la création d'un signalement
         $user = null;
-        if ($request->bearerToken()) {
-            $user = auth('api')->user();
-        }
 
         // Préparer les données du signalement
         $data = [
@@ -229,9 +220,9 @@ class SignalementController extends Controller
             // Création du signalement
             $signalement = Signalement::create($data);
             
-            // Attacher l'utilisateur au signalement s'il est authentifié
-            if ($user) {
-                $signalement->utilisateurs()->attach($user->id_utilisateur);
+            // L'utilisateur peut être associé via le formulaire s'il n'est pas authentifié
+            if ($request->has('utilisateur_id')) {
+                $signalement->utilisateurs()->attach($request->utilisateur_id);
             }
 
             // Gestion du téléversement des fichiers
