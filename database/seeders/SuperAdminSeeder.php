@@ -16,6 +16,9 @@ class SuperAdminSeeder extends Seeder
      */
     public function run(): void
     {
+        // Utiliser le bon guard (celui défini dans config/auth.php pour l'API)
+        $guardName = config('auth.defaults.guard');
+        
         // Créer les permissions si elles n'existent pas
         $permissions = [
             'gérer utilisateurs',
@@ -26,11 +29,17 @@ class SuperAdminSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+            Permission::firstOrCreate([
+                'name' => $permission,
+                'guard_name' => $guardName
+            ]);
         }
 
         // Créer le rôle Super Admin s'il n'existe pas
-        $superAdminRole = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
+        $superAdminRole = Role::firstOrCreate([
+            'name' => 'Super Admin',
+            'guard_name' => $guardName
+        ]);
         
         // Donner toutes les permissions au rôle Super Admin
         $superAdminRole->syncPermissions(Permission::all());
