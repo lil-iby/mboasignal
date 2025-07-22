@@ -32,7 +32,7 @@ Route::prefix('v1')->group(function () {
     // Route de test pour v1 (publique)
     Route::get('/test', function () {
         return response()->json(['message' => 'API v1 est opérationnelle']);
-        Route::post('/signalements', [SignalementController::class, 'store']);
+        Route::post('/signalement', [SignalementController::class, 'store']);
     });
     
     // Routes d'authentification publiques
@@ -40,7 +40,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
 
     // Routes pour les signalements (lecture seule)
-    Route::get('/signalements', [SignalementController::class, 'index']);
+    // Route::get('/signalements', [SignalementController::class, 'index']);
     Route::get('/signalements/{signalement}', [SignalementController::class, 'show']);
 
     // Routes protégées par authentification
