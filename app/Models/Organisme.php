@@ -19,6 +19,7 @@ class Organisme extends Model
         'description_organisme',
         'adresse_organisme',
         'nombre_signalements',
+        'statut_organisme',
     ];
 
     public function signalements()

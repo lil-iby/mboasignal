@@ -53,7 +53,6 @@ Route::prefix('v1')->group(function () {
         Route::post('organismes', [OrganismeController::class, 'store'])->name('organismes.store');
         Route::get('organismes/{id}', [OrganismeController::class, 'show'])->name('organismes.show');
         Route::put('organismes/{id}', [OrganismeController::class, 'update'])->name('organismes.update');
-        Route::patch('organismes/{id}', [OrganismeController::class, 'update']);
         Route::delete('organismes/{id}', [OrganismeController::class, 'destroy'])->name('organismes.destroy');
         // On garde la resource route pour compatibilité éventuelle
         Route::apiResource('organismes', OrganismeController::class);

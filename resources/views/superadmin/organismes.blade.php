@@ -92,12 +92,16 @@
               <td>${o.nom_organisme}</td>
               <td>${o.domaine_organisme || '-'}</td>
               <td>${o.email_organisme || '-'}</td>
-              <td>${o.nb_signalements || '-'}</td>
-              <td><span class="status active">Actif</span></td>
+              <td>${typeof o.signalements_count !== 'undefined' ? o.signalements_count : (o.nombre_signalements)}</td>
+              <td><span class="status" style="color:${o.statut_organisme === 'désactivé' ? 'red' : 'green'};font-weight:bold;">${o.statut_organisme === 'désactivé' ? 'Désactivé' : 'Activé'}</span></td>
               <td>
                 ${isAdmin() ? `
-                <button class='btn-sm edit' data-id='${o.id_organisme}'>Modifier</button>
-                <button class='btn-sm delete' data-id='${o.id_organisme}'>Supprimer</button>` : ''}
+                  <button class='btn-sm edit' data-id='${o.id_organisme}'>Modifier</button>
+                  ${o.statut_organisme === 'activé'
+                    ? `<button class='btn-sm toggle-status' data-id='${o.id_organisme}' data-action='disable' style='background:#dc3545;color:#fff;margin-left:5px;'>Désactiver</button>`
+                    : `<button class='btn-sm toggle-status' data-id='${o.id_organisme}' data-action='enable' style='background:#28a745;color:#fff;margin-left:5px;'>Activer</button>`
+                  }
+                ` : ''}
               </td>
             </tr>
           `).join('');
@@ -106,8 +110,44 @@
             document.querySelectorAll('.btn-sm.edit').forEach(btn => {
               btn.onclick = function() { showEditOrganismeModal(this.dataset.id); };
             });
-            document.querySelectorAll('.btn-sm.delete').forEach(btn => {
-              btn.onclick = function() { showDeleteOrganismeModal(this.dataset.id); };
+            document.querySelectorAll('.btn-sm.toggle-status').forEach(btn => {
+              btn.onclick = async function() {
+                const id = this.dataset.id;
+                const action = this.dataset.action;
+                const token = localStorage.getItem('auth_token');
+                let confirmMsg = action === 'disable'
+                  ? "Voulez-vous vraiment désactiver cet organisme ?"
+                  : "Voulez-vous vraiment activer cet organisme ?";
+                showStatutConfirmModal({
+                  id,
+                  action,
+                  confirmMsg,
+                  onConfirm: async function() {
+                    try {
+                      const method = id ? 'PATCH' : 'POST';
+                      const res = await fetch(`/api/v1/organismes/${id}`, {
+                        method: method,
+                        headers: {
+                          'Authorization': 'Bearer ' + token,
+                          'Content-Type': 'application/json',
+                          'Accept': 'application/json',
+                          'X-Requested-With': 'XMLHttpRequest',
+                          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({
+                          statut_organisme: action === 'disable' ? 'désactivé' : 'activé'
+                        })
+                      });
+                      if (!res.ok) {
+                        return;
+                      }
+                      await fetchAndRenderOrganismes();
+                    } catch (e) {
+                      alert("Erreur réseau : " + e.message);
+                    }
+                  }
+                });
+              }
             });
             document.getElementById('btn-add-organisme-table').style.display = 'inline-block';
           }
@@ -134,7 +174,7 @@
             <input type="text" name="nom_organisme" id="org-nom" placeholder="Nom de l'organisme" class="form-control" required style="border:1px solid #ccc;border-radius:7px;padding:10px 14px;margin-bottom:0.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:border-color 0.2s;outline:none;font-size:1rem;" onfocus="this.style.borderColor='#007bff'" onblur="this.style.borderColor='#ccc'">
           </div>
           <div style="margin-bottom:1rem;">
-            <input type="text" name="domaine_organisme" id="org-domaine" placeholder="Domaine" class="form-control" style="border:1px solid #ccc;border-radius:7px;padding:10px 14px;margin-bottom:0.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:border-color 0.2s;outline:none;font-size:1rem;" onfocus="this.style.borderColor='#007bff'" onblur="this.style.borderColor='#ccc'">
+            <input type="text" name="domaine_organisme" id="org-domaine" placeholder="Domaine (optionnel)" class="form-control" style="border:1px solid #ccc;border-radius:7px;padding:10px 14px;margin-bottom:0.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:border-color 0.2s;outline:none;font-size:1rem;" onfocus="this.style.borderColor='#007bff'" onblur="this.style.borderColor='#ccc'">
           </div>
           <div style="margin-bottom:1rem;">
             <input type="email" name="email_organisme" id="org-email" placeholder="Email du responsable" class="form-control" style="border:1px solid #ccc;border-radius:7px;padding:10px 14px;margin-bottom:0.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);transition:border-color 0.2s;outline:none;font-size:1rem;" onfocus="this.style.borderColor='#007bff'" onblur="this.style.borderColor='#ccc'" required>
@@ -216,15 +256,15 @@
       const id = document.getElementById('org-id').value;
       const data = {
         nom_organisme: document.getElementById('org-nom').value,
-        domaine_organisme: document.getElementById('org-domaine').value,
-        email_organisme: document.getElementById('org-email').value,
-        tel_organisme: document.getElementById('org-tel').value,
         adresse_organisme: document.getElementById('org-adresse').value,
-        description_organisme: document.getElementById('org-desc').value
+        tel_organisme: document.getElementById('org-tel').value,
+        email_organisme: document.getElementById('org-email').value,
+        description_organisme: document.getElementById('org-desc').value,
+        domaine_organisme: document.getElementById('org-domaine').value
       };
 
       // Validation des données
-      if (!data.nom_organisme || !data.domaine_organisme || !data.email_organisme) {
+      if (!data.nom_organisme || !data.adresse_organisme || !data.tel_organisme || !data.email_organisme) {
         alert('Veuillez remplir tous les champs obligatoires');
         return;
       }
@@ -251,9 +291,38 @@
         console.log('Réponse du serveur:', responseData);
 
         if (!response.ok) {
-          const errorMsg = responseData.message || 'Erreur lors de l\'enregistrement de l\'organisme';
-          console.error('Erreur serveur:', response.status, response.statusText, errorMsg);
-          alert(`Erreur ${response.status}: ${errorMsg}`);
+          // Supprimer les anciens messages d'erreur
+          document.querySelectorAll('.input-error').forEach(e => e.remove());
+          if (responseData.errors) {
+            // Afficher les nouveaux messages d'erreur sous les champs concernés
+            Object.entries(responseData.errors).forEach(([field, messages]) => {
+              // Mapping champ backend -> id champ input
+              let inputId = '';
+              switch(field) {
+                case 'nom_organisme': inputId = 'org-nom'; break;
+                case 'email_organisme': inputId = 'org-email'; break;
+                case 'adresse_organisme': inputId = 'org-adresse'; break;
+                case 'tel_organisme': inputId = 'org-tel'; break;
+                case 'description_organisme': inputId = 'org-desc'; break;
+                case 'domaine_organisme': inputId = 'org-domaine'; break;
+                default: inputId = null;
+              }
+              if (inputId) {
+                const input = document.getElementById(inputId);
+                if (input) {
+                  const errorDiv = document.createElement('div');
+                  errorDiv.className = 'input-error';
+                  errorDiv.style.color = 'red';
+                  errorDiv.style.fontSize = '0.9em';
+                  errorDiv.style.marginTop = '2px';
+                  errorDiv.textContent = messages.join(', ');
+                  input.parentNode.appendChild(errorDiv);
+                }
+              }
+            });
+          } else {
+            alert(`Erreur ${response.status}: ${responseData.message || 'Erreur lors de l\'enregistrement de l\'organisme'}`);
+          }
           return;
         }
 
@@ -299,6 +368,8 @@
     </script>
 
   </section>
+  @include('superadmin.partials.confirm_statut_modal')
+@include('superadmin.partials.confirm_statut_modal_js')
 </main>
 
 @include('includes.footer')

@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('tokenid')->nullable();
             $table->integer('day_token')->nullable();
             $table->integer('hour_token')->nullable();
-            $table->string('etat_compte')->default('actif');
+            $table->string('etat_compte')->default('activé');
             $table->string('type_compte')->nullable();
             $table->dateTime('date_inscription')->nullable();
             $table->dateTime('date_confirmation')->nullable();

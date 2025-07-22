@@ -49,6 +49,9 @@
       </table>
     </div>
   </section>
+@include('superadmin.partials.confirm_statut_utilisateur_modal')
+@include('superadmin.partials.confirm_statut_utilisateur_modal_js')
+@include('superadmin.partials.edit_utilisateur_modal')
 </main>
 
 <!-- Modals -->
@@ -99,18 +102,106 @@
           <td>${u.prenom_utilisateur} ${u.nom_utilisateur}</td>
           <td>${u.email_utilisateur}</td>
           <td>${u.type_utilisateur}</td>
-          <td><span class="status ${u.etat_compte === 'actif' ? 'active' : 'inactive'}">${u.etat_compte}</span></td>
+          <td><span class="status" style="color:${u.etat_compte === 'désactivé' ? 'red' : 'green'};font-weight:bold;">${u.etat_compte === 'désactivé' ? 'Désactivé' : 'Activé'}</span></td>
           <td>
-            <button class="btn-sm status" data-id="${u.id_utilisateur}" data-status="${u.etat_compte}">${u.etat_compte === 'actif' ? 'Désactiver' : 'Activer'}</button>
-            <button class="btn-sm delete" data-id="${u.id_utilisateur}">Supprimer</button>
+            <button class="btn-sm status" data-id="${u.id_utilisateur}" data-status="${u.etat_compte}">${u.etat_compte === 'activé' ? 'Désactiver' : 'Activer'}</button>
+<button class="btn-sm edit" data-id="${u.id_utilisateur}">Modifier</button>
           </td>
         </tr>`).join('');
+
+      document.querySelectorAll('.btn-sm.edit').forEach(btn => {
+        btn.onclick = async function() {
+          const userId = this.dataset.id;
+          const token = localStorage.getItem('auth_token');
+          // Récupérer les données utilisateur pour pré-remplir le formulaire
+          const res = await fetch(`/api/v1/utilisateurs/${userId}`, {
+            headers: {
+              'Authorization': 'Bearer ' + token,
+              'Accept': 'application/json'
+            }
+          });
+          if (!res.ok) return;
+          const user = await res.json();
+          document.getElementById('editUtilisateurId').value = user.id_utilisateur;
+          document.getElementById('editPrenomUtilisateur').value = user.prenom_utilisateur || '';
+          document.getElementById('editNomUtilisateur').value = user.nom_utilisateur || '';
+          document.getElementById('editEmailUtilisateur').value = user.email_utilisateur || '';
+          document.getElementById('editTelUtilisateur').value = user.tel_utilisateur || '';
+          document.getElementById('editTypeUtilisateur').value = user.type_utilisateur || 'utilisateur';
+          document.getElementById('editUtilisateurErrors').textContent = '';
+          document.getElementById('editUtilisateurModal').style.display = 'flex';
+        };
+      });
+
+      // Soumission du formulaire d'édition utilisateur
+      const editForm = document.getElementById('editUtilisateurForm');
+      editForm.onsubmit = async function(e) {
+        e.preventDefault();
+        const userId = document.getElementById('editUtilisateurId').value;
+        const token = localStorage.getItem('auth_token');
+        const data = {
+          prenom_utilisateur: document.getElementById('editPrenomUtilisateur').value,
+          nom_utilisateur: document.getElementById('editNomUtilisateur').value,
+          email_utilisateur: document.getElementById('editEmailUtilisateur').value,
+          tel_utilisateur: document.getElementById('editTelUtilisateur').value,
+          type_utilisateur: document.getElementById('editTypeUtilisateur').value
+        };
+        const res = await fetch(`/api/v1/utilisateurs/${userId}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+          },
+          body: JSON.stringify(data)
+        });
+        if (res.status === 422) {
+          const err = await res.json();
+          document.getElementById('editUtilisateurErrors').textContent = Object.values(err.errors).join(' ');
+          return;
+        }
+        document.getElementById('editUtilisateurModal').style.display = 'none';
+        fetchAndRenderUsers();
+      };
+      document.getElementById('btnCancelEditUtilisateur').onclick = function() {
+        document.getElementById('editUtilisateurModal').style.display = 'none';
+      };
+
 
       document.querySelectorAll('.btn-sm.delete').forEach(btn => {
         btn.onclick = () => showDeleteModal(btn.dataset.id);
       });
       document.querySelectorAll('.btn-sm.status').forEach(btn => {
-        btn.onclick = () => showStatusModal(btn.dataset.id, btn.dataset.status);
+        btn.onclick = function() {
+          const userId = this.dataset.id;
+          const currentStatus = this.dataset.status;
+          const action = currentStatus === 'activé' ? 'disable' : 'enable';
+          const confirmMsg = action === 'disable'
+            ? "Voulez-vous vraiment désactiver ce compte utilisateur ?"
+            : "Voulez-vous vraiment activer ce compte utilisateur ?";
+          showStatutUtilisateurConfirmModal({
+            id: userId,
+            action,
+            confirmMsg,
+            onConfirm: async function() {
+              const token = localStorage.getItem('auth_token');
+              await fetch(`/api/v1/utilisateurs/${userId}`, {
+                method: 'PATCH',
+                headers: {
+                  'Authorization': 'Bearer ' + token,
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                  'X-Requested-With': 'XMLHttpRequest',
+                  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ etat_compte: action === 'disable' ? 'désactivé' : 'activé' })
+              });
+              await fetchAndRenderUsers();
+            }
+          });
+        };
       });
     } catch (e) {
       tableBody.innerHTML = '<tr><td colspan="6">Erreur réseau</td></tr>';
@@ -146,9 +237,9 @@
   let statusToSet = null;
   function showStatusModal(userId, currentStatus) {
     statusUserId = userId;
-    statusToSet = currentStatus === 'actif' ? 'inactif' : 'actif';
-    document.getElementById('statusModalTitle').textContent = statusToSet === 'actif' ? 'Activer le compte ?' : 'Désactiver le compte ?';
-    document.getElementById('statusModalText').textContent = statusToSet === 'actif' ? "L'utilisateur pourra se connecter." : "L'utilisateur ne pourra plus se connecter.";
+    statusToSet = currentStatus === 'activé' ? 'desactivé' : 'activé';
+    document.getElementById('statusModalTitle').textContent = statusToSet === 'activé' ? 'Activer le compte ?' : 'Désactiver le compte ?';
+    document.getElementById('statusModalText').textContent = statusToSet === 'activé' ? "L'utilisateur pourra se connecter." : "L'utilisateur ne pourra plus se connecter.";
     document.getElementById('statusModal').style.display = 'flex';
   }
   function hideStatusModal() {

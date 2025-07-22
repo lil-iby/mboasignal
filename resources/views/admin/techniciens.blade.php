@@ -44,13 +44,13 @@ if (!localStorage.type_utilisateur || localStorage.type_utilisateur !== 'admin')
           <?php
           // Données fictives
           $techniciens = [
-            ['id' => 1, 'nom' => 'Jean Mbassi', 'email' => 'jean.mbassi@eneo.cm', 'tel' => '699123456', 'statut' => 'actif'],
-            ['id' => 2, 'nom' => 'Amina Douala', 'email' => 'amina.douala@eneo.cm', 'tel' => '697654321', 'statut' => 'actif'],
-            ['id' => 3, 'nom' => 'Paul Tchou', 'email' => 'paul.tchou@eneo.cm', 'tel' => '696987654', 'statut' => 'inactif'],
+            ['id' => 1, 'nom' => 'Jean Mbassi', 'email' => 'jean.mbassi@eneo.cm', 'tel' => '699123456', 'statut' => 'activé'],
+            ['id' => 2, 'nom' => 'Amina Douala', 'email' => 'amina.douala@eneo.cm', 'tel' => '697654321', 'statut' => 'activé'],
+            ['id' => 3, 'nom' => 'Paul Tchou', 'email' => 'paul.tchou@eneo.cm', 'tel' => '696987654', 'statut' => 'désactivé'],
           ];
 
           foreach ($techniciens as $tech) {
-            $statusClass = ($tech['statut'] === 'actif') ? 'status-active' : 'status-inactive';
+            $statusClass = ($tech['statut'] === 'activé') ? 'status-active' : 'status-inactive';
 
             echo "<tr>";
             echo "<td>" . htmlspecialchars($tech['nom']) . "</td>";

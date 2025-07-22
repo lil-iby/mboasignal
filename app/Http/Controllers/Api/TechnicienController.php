@@ -102,7 +102,7 @@ class TechnicienController extends Controller
             $technicien->pass_utilisateur = Hash::make($request->pass_utilisateur);
             $technicien->type_utilisateur = 'technicien';
             $technicien->id_organisme = $user->id_organisme;
-            $technicien->statut_compte = 'actif';
+            $technicien->statut_compte = 'activé';
             $technicien->save();
 
             // Attribuer le rôle de technicien
@@ -147,7 +147,7 @@ class TechnicienController extends Controller
             'email_utilisateur' => 'sometimes|required|string|email|max:100|unique:utilisateurs,email_utilisateur,' . $id . ',id_utilisateur',
             'tel_utilisateur' => 'sometimes|required|string|max:20',
             'pass_utilisateur' => 'sometimes|nullable|string|min:8|confirmed',
-            'statut_compte' => 'sometimes|required|in:actif,inactif'
+            'statut_compte' => 'sometimes|required|in:activé,désactivé'
         ]);
 
         if ($validator->fails()) {
@@ -251,7 +251,7 @@ class TechnicienController extends Controller
 
         $techniciens = Utilisateur::where('id_organisme', $organismeId)
             ->where('type_utilisateur', 'technicien')
-            ->where('statut_compte', 'actif')
+            ->where('statut_compte', 'activé')
             ->get(['id_utilisateur', 'nom_utilisateur', 'prenom_utilisateur', 'email_utilisateur']);
 
         return response()->json([

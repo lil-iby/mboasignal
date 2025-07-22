@@ -40,7 +40,7 @@ class UtilisateurController extends Controller
             'tel_utilisateur' => $request->tel_utilisateur,
             'photo_utilisateur' => $request->photo_utilisateur,
             'date_inscription' => now(),
-            'etat_compte' => 'actif',
+            'etat_compte' => 'activé',
         ]);
 
         $token = JWTAuth::fromUser($utilisateur);
@@ -152,7 +152,7 @@ class UtilisateurController extends Controller
             'type_utilisateur' => 'sometimes|string|in:admin,utilisateur,moderateur',
             'tel_utilisateur' => 'nullable|string|max:20',
             'photo_utilisateur' => 'nullable|string|max:255',
-            'etat_compte' => 'sometimes|in:actif,inactif,suspendu'
+            'etat_compte' => 'sometimes|in:activé,désactivé,suspendu'
         ]);
 
         if ($validator->fails()) {
