@@ -65,9 +65,10 @@
       <input type="text" id="createTelUtilisateur" class="form-control" placeholder="Numéro de téléphone">
       <label for="createTypeUtilisateur">Type</label>
       <select id="createTypeUtilisateur" class="form-control">
-        <option value="utilisateur">Utilisateur</option>
-        <option value="moderateur">Modérateur</option>
-        <option value="admin">Admin</option>
+        <option value="citoyen">Citoyen</option>
+        <option value="technicien">Technicien</option>
+        <option value="administrateur">Administrateur</option>
+        <option value="superadmin">Super Admin</option>
       </select>
       <label for="createPasswordUtilisateur">Mot de passe</label>
       <input type="password" id="createPasswordUtilisateur" class="form-control" required placeholder="Mot de passe">

@@ -75,14 +75,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('user-avatar').innerHTML = `<img src="${avatarUrl}" alt="${fullName}" style="width:48px;height:48px;border-radius:50%;vertical-align:middle;">`;
     document.getElementById('user-name').textContent = fullName;
   </script>
-
+  
   <section>
     <h2>Liste des utilisateurs</h2>
-    <div style="margin-bottom: 1rem;">
-      <button id="btn-add-user-table" title="Créer un utilisateur" style="display:none; background:#007bff; color:#fff; border:none; border-radius:5px; padding:10px 15px; font-size:1rem; cursor:pointer;">
-        + Créer un utilisateur
-      </button>
-    </div>
+    <button id="btn-add-user-table" title="Créer un utilisateur" style="background:#007bff; color:#fff; border:none; border-radius:5px; padding:10px 15px; font-size:1rem; cursor:pointer;">
+      + Créer un utilisateur
+    </button>
     <div class="table-wrapper">
       <table class="styled-table">
         <thead>
@@ -127,7 +125,66 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <script>
-  async function fetchAndRenderUsers() {
+// --- MODALE CRÉATION UTILISATEUR ---
+document.addEventListener('DOMContentLoaded', function() {
+  // Ouvre la modale à l'ouverture du bouton
+  const btnAddUser = document.getElementById('btn-add-user-table');
+  const modal = document.getElementById('createUtilisateurModal');
+  const closeBtn = document.getElementById('closeCreateUtilisateurModal');
+  const form = document.getElementById('createUtilisateurForm');
+  const errors = document.getElementById('createUtilisateurErrors');
+  if (btnAddUser && modal && closeBtn && form) {
+    btnAddUser.onclick = function() {
+      form.reset();
+      errors.textContent = '';
+      modal.style.display = 'flex';
+    };
+    closeBtn.onclick = function() {
+      modal.style.display = 'none';
+    };
+    // Ferme la modale si clic hors contenu
+    modal.onclick = function(e) {
+      if (e.target === modal) modal.style.display = 'none';
+    };
+    // Soumission du formulaire
+    form.onsubmit = async function(e) {
+      e.preventDefault();
+      errors.textContent = '';
+      const token = localStorage.getItem('auth_token');
+      const data = {
+        prenom_utilisateur: document.getElementById('createPrenomUtilisateur').value,
+        nom_utilisateur: document.getElementById('createNomUtilisateur').value,
+        email_utilisateur: document.getElementById('createEmailUtilisateur').value,
+        tel_utilisateur: document.getElementById('createTelUtilisateur').value,
+        type_utilisateur: document.getElementById('createTypeUtilisateur').value,
+        pass_utilisateur: document.getElementById('createPasswordUtilisateur').value,
+        pass_utilisateur_confirmation: document.getElementById('createPasswordUtilisateurConfirm').value
+      };
+      const res = await fetch('/api/v1/utilisateurs', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify(data)
+      });
+      if (res.status === 422) {
+        const err = await res.json();
+        errors.textContent = Object.values(err.errors).join(' ');
+        return;
+      }
+      modal.style.display = 'none';
+      fetchAndRenderUsers();
+    };
+  }
+});
+
+// --- FIN MODALE CRÉATION UTILISATEUR ---
+
+async function fetchAndRenderUsers() {
     const token = localStorage.getItem('auth_token');
     const idOrganisme = localStorage.getItem('id_organisme');
     const tableBody = document.getElementById('users-table-body');

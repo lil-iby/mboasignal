@@ -46,7 +46,7 @@ Route::prefix('v1')->group(function () {
     });
         
         // Routes pour utilisateurs
-        Route::apiResource('utilisateurs', UtilisateurController::class)->except(['store']);
+        Route::apiResource('utilisateurs', UtilisateurController::class);
         
         // Routes explicites pour chaque action du CRUD organisme
         Route::get('organismes', [OrganismeController::class, 'index'])->name('organismes.index');
