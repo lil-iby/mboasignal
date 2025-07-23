@@ -54,7 +54,9 @@ class Utilisateur extends Authenticatable
      */
     public function organisme()
     {
-        return $this->organismes()->first();
+        return $this->hasOne(Organisme::class, 'id_organisme', 'id_organisme')
+            ->join('organisme_utilisateur', 'organismes.id_organisme', '=', 'organisme_utilisateur.id_organisme')
+            ->where('organisme_utilisateur.id_utilisateur', $this->id_utilisateur);
     }
     
     /**
