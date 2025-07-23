@@ -70,7 +70,7 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return Utilisateur::create([
+        $user = Utilisateur::create([
             'code_utilisateur' => $this->generateUniqueCode(),
             'nom_utilisateur' => $data['nom_utilisateur'],
             'prenom_utilisateur' => $data['prenom_utilisateur'],
@@ -80,6 +80,19 @@ class RegisterController extends Controller
             'type_utilisateur' => $data['type_utilisateur'] ?? 'utilisateur',
             'statut_utilisateur' => 'activé',
         ]);
+
+        // Attribuer le rôle correspondant au type d'utilisateur
+        $roleName = $data['type_utilisateur'] ?? 'utilisateur';
+        
+        // Vérifier si le rôle existe, sinon le créer
+        $role = \Spatie\Permission\Models\Role::firstOrCreate(
+            ['name' => $roleName],
+            ['guard_name' => 'web']
+        );
+        
+        $user->assignRole($role);
+        
+        return $user;
     }
 
     /**
