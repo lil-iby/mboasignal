@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Role;
-use App\Models\User;
+use App\Models\Utilisateur as User;
 use Illuminate\Support\Facades\Hash;
 
 class RoleSeeder extends Seeder

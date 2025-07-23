@@ -66,9 +66,10 @@
       <input type="text" id="editTelUtilisateur" class="form-control" placeholder="Numéro de téléphone">
       <label for="editTypeUtilisateur">Type</label>
       <select id="editTypeUtilisateur" class="form-control">
-        <option value="utilisateur">Utilisateur</option>
-        <option value="moderateur">Modérateur</option>
-        <option value="admin">Admin</option>
+        <option value="citoyen">Citoyen</option>
+        <option value="technicien">Technicien</option>
+        <option value="administrateur">Administrateur</option>
+        <option value="superadmin">Super Admin</option>
       </select>
       <div id="editUtilisateurErrors"></div>
       <div style="text-align:right;margin-top:1.7rem;">

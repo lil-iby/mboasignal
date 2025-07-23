@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\Utilisateur as User;
 use App\Models\Content;
 use App\Models\ActivityLog;
 use Carbon\Carbon;

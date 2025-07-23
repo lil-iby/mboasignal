@@ -31,7 +31,7 @@ return [
          * Eloquent model should be used to retrieve your users. This should be
          * the model that implements the "HasRoles" trait.
          */
-        'user' => App\Models\User::class,
+        'user' => App\Models\Utilisateur::class,
 
     ],
 
