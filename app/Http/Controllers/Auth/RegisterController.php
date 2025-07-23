@@ -81,15 +81,16 @@ class RegisterController extends Controller
             'statut_utilisateur' => 'activé',
         ]);
 
-        // Attribuer le rôle correspondant au type d'utilisateur
-        // $roleName = $data['type_utilisateur'] ?? 'utilisateur';
+        // Récupérer ou créer le rôle correspondant au type d'utilisateur
+        $roleName = $data['type_utilisateur'] ?? 'utilisateur';
         
-        // Vérifier si le rôle existe, sinon le créer
-        // $role = \Spatie\Permission\Models\Role::firstOrCreate(
-        //     ['name' => $roleName],
-        //     ['guard_name' => 'web']
-        // );
+        // Créer le rôle s'il n'existe pas, sans aucune restriction
+        $role = \Spatie\Permission\Models\Role::firstOrCreate(
+            ['name' => $roleName],
+            ['guard_name' => 'web']
+        );
         
+        // Assigner le rôle à l'utilisateur
         $user->assignRole($role);
         
         return $user;
