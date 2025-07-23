@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\Organisme;
 
 class User extends Authenticatable
 {
@@ -46,6 +47,22 @@ class User extends Authenticatable
         'etat_compte',
         'photo_utilisateur'
     ];
+
+    /**
+     * Get the organismes for the user.
+     */
+    public function organismes()
+    {
+        return $this->belongsToMany(Organisme::class, 'organisme_utilisateur', 'id_utilisateur', 'id_organisme');
+    }
+
+    /**
+     * Get the first organisme of the user.
+     */
+    public function organisme()
+    {
+        return $this->organismes()->first();
+    }
 
     /**
      * The attributes that should be hidden for serialization.
