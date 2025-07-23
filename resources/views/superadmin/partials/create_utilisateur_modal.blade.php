@@ -67,7 +67,7 @@
       <select id="createTypeUtilisateur" class="form-control">
         <option value="citoyen">Citoyen</option>
         <option value="technicien">Technicien</option>
-        <option value="administrateur">Administrateur</option>
+        <option value="admin">Administrateur</option>
         <option value="superadmin">Super Admin</option>
       </select>
       <label for="createPasswordUtilisateur">Mot de passe</label>

@@ -68,7 +68,7 @@
       <select id="editTypeUtilisateur" class="form-control">
         <option value="citoyen">Citoyen</option>
         <option value="technicien">Technicien</option>
-        <option value="administrateur">Administrateur</option>
+        <option value="admin">Administrateur</option>
         <option value="superadmin">Super Admin</option>
       </select>
       <div id="editUtilisateurErrors"></div>
