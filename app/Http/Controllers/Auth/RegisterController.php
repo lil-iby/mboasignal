@@ -54,7 +54,7 @@ class RegisterController extends Controller
             'email_utilisateur' => ['required', 'string', 'email', 'max:100', 'unique:utilisateurs,email_utilisateur'],
             'tel_utilisateur' => ['required', 'string', 'max:20'],
             'pass_utilisateur' => ['required', 'string', 'min:8', 'confirmed'],
-            'type_utilisateur' => ['required', 'string', 'in:utilisateur,admin'],
+            'type_utilisateur' => ['required', 'string', 'in:superadmin,admin,technicien,citoyen'],
         ], [
             'email_utilisateur.unique' => 'Cette adresse email est déjà utilisée.',
             'pass_utilisateur.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
@@ -77,12 +77,12 @@ class RegisterController extends Controller
             'email_utilisateur' => $data['email_utilisateur'],
             'tel_utilisateur' => $data['tel_utilisateur'],
             'pass_utilisateur' => Hash::make($data['pass_utilisateur']),
-            'type_utilisateur' => $data['type_utilisateur'] ?? 'utilisateur',
+            'type_utilisateur' => $data['type_utilisateur'] ?? 'citoyen',
             'statut_utilisateur' => 'activé',
         ]);
 
         // Récupérer ou créer le rôle correspondant au type d'utilisateur
-        $roleName = $data['type_utilisateur'] ?? 'utilisateur';
+        $roleName = $data['type_utilisateur'] ?? 'citoyen';
         
         // Créer le rôle s'il n'existe pas, sans aucune restriction
         $role = \Spatie\Permission\Models\Role::firstOrCreate(
