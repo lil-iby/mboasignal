@@ -42,6 +42,7 @@ class SuperAdminSeeder extends Seeder
             ['name' => 'utilisateur', 'guard_name' => $guardName],
             ['name' => 'technicien', 'guard_name' => $guardName],
             ['name' => 'admin_organisme', 'guard_name' => $guardName],
+            ['name' => 'citoyen', 'guard_name' => $guardName],
         ];
 
         foreach ($roles as $roleData) {
