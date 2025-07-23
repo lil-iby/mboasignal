@@ -222,8 +222,8 @@
         <div class="form-group">
           <label for="type_utilisateur">Type de compte *</label>
           <select id="type_utilisateur" name="type_utilisateur" required>
-            <option value="utilisateur">Utilisateur</option>
-            <option value="admin">Administrateur</option>
+            <option value="technicien">Technicien</option>
+            <option value="citoyen">Citoyen</option>
           </select>
         </div>
       </div>

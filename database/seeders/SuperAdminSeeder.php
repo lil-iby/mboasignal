@@ -48,13 +48,15 @@ class SuperAdminSeeder extends Seeder
         $superAdmins = [
             [
                 'name' => 'Erinn',
-                'email' => 'erinn@admin.com',
+                'email' => 'yamba@gmail.com',
+                'type_utilisateur'=>'superadmin',
                 'password' => Hash::make('123456789'),
                 'email_verified_at' => now(),
             ],
             [
                 'name' => 'Yamba',
-                'email' => 'yamba@admin.com',
+                'email' => 'yamba.e@gmail.com',
+                'type_utilisateur'=>'superadmin',
                 'password' => Hash::make('123456789'),
                 'email_verified_at' => now(),
             ]
