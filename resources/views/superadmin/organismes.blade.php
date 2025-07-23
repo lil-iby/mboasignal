@@ -118,15 +118,15 @@
                 let confirmMsg = action === 'disable'
                   ? "Voulez-vous vraiment désactiver cet organisme ?"
                   : "Voulez-vous vraiment activer cet organisme ?";
+                
                 showStatutConfirmModal({
-                  id,
-                  action,
-                  confirmMsg,
+                  id: id,
+                  action: action,
+                  confirmMsg: confirmMsg,
                   onConfirm: async function() {
                     try {
-                      const method = id ? 'PATCH' : 'POST';
                       const res = await fetch(`/api/v1/organismes/${id}`, {
-                        method: method,
+                        method: 'PATCH',
                         headers: {
                           'Authorization': 'Bearer ' + token,
                           'Content-Type': 'application/json',
@@ -138,17 +138,29 @@
                           statut_organisme: action === 'disable' ? 'désactivé' : 'activé'
                         })
                       });
+                      
+                      const data = await res.json();
+                      
                       if (!res.ok) {
-                        showPopover("Erreur lors de la modification du statut", 'error');
+                        showPopover(data.message || "Erreur lors de la modification du statut", 'error');
                         return;
                       }
+                      
+                      showPopover(
+                        action === 'disable' 
+                          ? 'Organisme désactivé avec succès' 
+                          : 'Organisme activé avec succès', 
+                        'success'
+                      );
+                      
                       await fetchAndRenderOrganismes();
                     } catch (e) {
-                      console.error("Erreur réseau : " + e.message);
+                      console.error("Erreur : ", e);
+                      showPopover("Une erreur est survenue", 'error');
                     }
                   }
                 });
-              }
+              };
             });
             document.getElementById('btn-add-organisme-table').style.display = 'inline-block';
           }
@@ -414,6 +426,80 @@
   }
 </style>
   <script>
+    // Fonction pour afficher une boîte de confirmation
+    function showStatutConfirmModal({ id, action, confirmMsg, onConfirm }) {
+      // Créer la modale de confirmation si elle n'existe pas
+      let modal = document.getElementById('confirmStatusModal');
+      
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'confirmStatusModal';
+        modal.className = 'modal';
+        modal.style.display = 'none';
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        modal.style.zIndex = '2000';
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        
+        const modalContent = document.createElement('div');
+        modalContent.style.backgroundColor = '#fff';
+        modalContent.style.padding = '2rem';
+        modalContent.style.borderRadius = '8px';
+        modalContent.style.maxWidth = '400px';
+        modalContent.style.width = '90%';
+        modalContent.style.textAlign = 'center';
+        
+        modalContent.innerHTML = `
+          <h3>Confirmer l'action</h3>
+          <p id="confirmStatusMessage">${confirmMsg}</p>
+          <div style="margin-top: 1.5rem;">
+            <button id="confirmStatusYes" class="btn" style="background: #dc3545; color: white; margin-right: 10px;">Oui</button>
+            <button id="confirmStatusNo" class="btn" style="background: #6c757d; color: white;">Annuler</button>
+          </div>
+        `;
+        
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+        
+        // Gestion des clics sur les boutons
+        document.getElementById('confirmStatusYes').addEventListener('click', function() {
+          modal.style.display = 'none';
+          if (typeof onConfirm === 'function') {
+            onConfirm();
+          }
+        });
+        
+        document.getElementById('confirmStatusNo').addEventListener('click', function() {
+          modal.style.display = 'none';
+        });
+      } else {
+        // Mettre à jour le message et afficher la modale existante
+        document.getElementById('confirmStatusMessage').textContent = confirmMsg;
+        modal.style.display = 'flex';
+        
+        // Mettre à jour le gestionnaire d'événements pour le bouton Oui
+        const oldBtn = document.getElementById('confirmStatusYes');
+        const newBtn = oldBtn.cloneNode(true);
+        oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+        
+        newBtn.addEventListener('click', function() {
+          modal.style.display = 'none';
+          if (typeof onConfirm === 'function') {
+            onConfirm();
+          }
+        });
+      }
+      
+      // Afficher la modale
+      modal.style.display = 'flex';
+    }
+
     // Fonction pour afficher les popovers
     function showPopover(message, type = 'success') {
       // Supprimer les popovers existants

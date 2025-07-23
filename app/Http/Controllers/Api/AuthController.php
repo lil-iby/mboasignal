@@ -36,7 +36,7 @@ class AuthController extends BaseController
             'email_utilisateur' => 'required|string|email|max:100|unique:utilisateurs,email_utilisateur',
             'pass_utilisateur' => 'required|string|min:8|confirmed',
             'tel_utilisateur' => 'required|string|max:20',
-            'type_utilisateur' => 'required|string|in:admin,superadmin,citoyen,technicien',
+            'type_utilisateur' => 'required|string|in:citoyen,technicien,admin,superadmin',
             'organisme_id' => 'nullable|exists:organismes,id_organisme',
         ], [
             'email_utilisateur.unique' => 'Cette adresse email est déjà utilisée.',
