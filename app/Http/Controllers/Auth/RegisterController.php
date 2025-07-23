@@ -54,7 +54,7 @@ class RegisterController extends Controller
             'email_utilisateur' => ['required', 'string', 'email', 'max:100', 'unique:utilisateurs,email_utilisateur'],
             'tel_utilisateur' => ['required', 'string', 'max:20'],
             'pass_utilisateur' => ['required', 'string', 'min:8', 'confirmed'],
-            'type_utilisateur' => ['required', 'string', 'in:superadmin,admin,technicien,citoyen'],
+            'type_utilisateur' => ['required', 'string'],
         ], [
             'email_utilisateur.unique' => 'Cette adresse email est déjà utilisée.',
             'pass_utilisateur.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
