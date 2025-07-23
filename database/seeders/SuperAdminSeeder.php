@@ -47,34 +47,32 @@ class SuperAdminSeeder extends Seeder
         // Créer les utilisateurs super admin
         $superAdmins = [
             [
-                'code_utilisateur' => 'SUPERADMIN1',
-                'nom_utilisateur' => 'Yamba',
-                'prenom_utilisateur' => 'Erinn',
-                'email_utilisateur' => 'yamba@gmail.com',
-                'pass_utilisateur' => Hash::make('123456789'),
+                'nom_utilisateur' => 'Admin',
+                'prenom_utilisateur' => 'System',
+                'email_utilisateur' => 'admin@mboasignal.com',
+                'pass_utilisateur' => Hash::make('admin123'),
+                'tel_utilisateur' => '+237690000000',
                 'type_utilisateur' => 'superadmin',
-                'tel_utilisateur' => '+237690000001',
                 'etat_compte' => 'activé',
-                'type_compte' => 'superadmin',
+                'statut_en_ligne' => false,
+                'derniere_connexion' => now(),
                 'date_inscription' => now(),
-                'date_confirmation' => now(),
                 'derniere_modification' => now(),
-                'statut_en_ligne' => true
+                'email_verified_at' => now(),
             ],
             [
-                'code_utilisateur' => 'SUPERADMIN2',
-                'nom_utilisateur' => 'Yamba',
-                'prenom_utilisateur' => 'Erinn',
-                'email_utilisateur' => 'yamba.e@gmail.com',
-                'pass_utilisateur' => Hash::make('123456789'),
+                'nom_utilisateur' => 'Super',
+                'prenom_utilisateur' => 'Admin',
+                'email_utilisateur' => 'superadmin@mboasignal.com',
+                'pass_utilisateur' => Hash::make('superadmin123'),
+                'tel_utilisateur' => '+237690000001',
                 'type_utilisateur' => 'superadmin',
-                'tel_utilisateur' => '+237690000002',
                 'etat_compte' => 'activé',
-                'type_compte' => 'superadmin',
+                'statut_en_ligne' => false,
+                'derniere_connexion' => now(),
                 'date_inscription' => now(),
-                'date_confirmation' => now(),
                 'derniere_modification' => now(),
-                'statut_en_ligne' => true
+                'email_verified_at' => now(),
             ]
         ];
 
