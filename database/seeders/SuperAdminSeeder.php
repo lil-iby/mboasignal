@@ -47,28 +47,41 @@ class SuperAdminSeeder extends Seeder
         // Créer les utilisateurs super admin
         $superAdmins = [
             [
-                'name' => 'Erinn',
-                'email' => 'yamba@gmail.com',
-                'type_utilisateur'=>'superadmin',
-                'password' => Hash::make('123456789'),
-                'email_verified_at' => now(),
+                'nom_utilisateur' => 'Yamba',
+                'prenom_utilisateur' => 'Erinn',
+                'email_utilisateur' => 'yamba@gmail.com',
+                'pass_utilisateur' => Hash::make('123456789'),
+                'type_utilisateur' => 'superadmin',
+                'date_inscription' => now(),
+                'etat_compte' => 'activé',
+                'date_confirmation' => now(),
+                'statut_utilisateur' => 'actif'
             ],
             [
-                'name' => 'Yamba',
-                'email' => 'yamba.e@gmail.com',
-                'type_utilisateur'=>'superadmin',
-                'password' => Hash::make('123456789'),
-                'email_verified_at' => now(),
+                'nom_utilisateur' => 'Yamba',
+                'prenom_utilisateur' => 'Erinn',
+                'email_utilisateur' => 'yamba.e@gmail.com',
+                'pass_utilisateur' => Hash::make('123456789'),
+                'type_utilisateur' => 'superadmin',
+                'date_inscription' => now(),
+                'etat_compte' => 'activé',
+                'date_confirmation' => now(),
+                'statut_utilisateur' => 'actif'
             ]
         ];
 
         foreach ($superAdmins as $admin) {
             $user = User::firstOrCreate(
-                ['email' => $admin['email']],
+                ['email_utilisateur' => $admin['email_utilisateur']],
                 [
-                    'name' => $admin['name'],
-                    'password' => $admin['password'],
-                    'email_verified_at' => $admin['email_verified_at']
+                    'nom_utilisateur' => $admin['nom_utilisateur'],
+                    'prenom_utilisateur' => $admin['prenom_utilisateur'],
+                    'pass_utilisateur' => $admin['pass_utilisateur'],
+                    'type_utilisateur' => $admin['type_utilisateur'],
+                    'date_inscription' => $admin['date_inscription'],
+                    'etat_compte' => $admin['etat_compte'],
+                    'date_confirmation' => $admin['date_confirmation'],
+                    'statut_utilisateur' => $admin['statut_utilisateur']
                 ]
             );
 
