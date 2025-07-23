@@ -62,7 +62,7 @@ class AuthController extends BaseController
                 'tel_utilisateur' => $request->tel_utilisateur,
                 'type_utilisateur' => $request->type_utilisateur,
                 'organisme_id' => $request->organisme_id,
-                'etat_compte' => 'en_attente', // Par défaut, le compte est en attente de validation
+                'etat_compte' => 'activé', // Le compte est automatiquement activé
                 'statut_en_ligne' => false,
                 'derniere_connexion' => now(),
             ]);
