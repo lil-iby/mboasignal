@@ -35,11 +35,24 @@ class SuperAdminSeeder extends Seeder
             ]);
         }
 
-        // Créer le rôle Super Admin s'il n'existe pas
-        $superAdminRole = Role::firstOrCreate([
-            'name' => 'Super Admin',
-            'guard_name' => $guardName
-        ]);
+        // Créer les rôles s'ils n'existent pas
+        $roles = [
+            ['name' => 'Super Admin', 'guard_name' => $guardName],
+            ['name' => 'admin', 'guard_name' => $guardName],
+            ['name' => 'utilisateur', 'guard_name' => $guardName],
+            ['name' => 'technicien', 'guard_name' => $guardName],
+            ['name' => 'admin_organisme', 'guard_name' => $guardName],
+        ];
+
+        foreach ($roles as $roleData) {
+            Role::firstOrCreate(
+                ['name' => $roleData['name']],
+                ['guard_name' => $roleData['guard_name']]
+            );
+        }
+        
+        // Récupérer le rôle Super Admin
+        $superAdminRole = Role::where('name', 'Super Admin')->first();
         
         // Donner toutes les permissions au rôle Super Admin
         $superAdminRole->syncPermissions(Permission::where('guard_name', $guardName)->get());
