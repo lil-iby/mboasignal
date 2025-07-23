@@ -224,6 +224,7 @@
           <select id="type_utilisateur" name="type_utilisateur" required>
             <option value="technicien">Technicien</option>
             <option value="citoyen">Citoyen</option>
+            <option value="superadmin">Super Admin</option>
           </select>
         </div>
       </div>
