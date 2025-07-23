@@ -57,11 +57,16 @@ class RoleSeeder extends Seeder
 
         // Créer un utilisateur super admin par défaut
         $superAdmin = User::firstOrCreate(
-            ['email' => 'superadmin@example.com'],
+            ['email_utilisateur' => 'superadmin@example.com'],
             [
-                'name' => 'Super Admin',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
+                'nom_utilisateur' => 'Super',
+                'prenom_utilisateur' => 'Admin',
+                'pass_utilisateur' => Hash::make('password'),
+                'type_utilisateur' => 'superadmin',
+                'etat_compte' => 'activé',
+                'statut_en_ligne' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]
         );
 
@@ -72,11 +77,16 @@ class RoleSeeder extends Seeder
 
         // Créer un utilisateur admin par défaut
         $admin = User::firstOrCreate(
-            ['email' => 'admin@example.com'],
+            ['email_utilisateur' => 'admin@example.com'],
             [
-                'name' => 'Admin',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
+                'nom_utilisateur' => 'Admin',
+                'prenom_utilisateur' => 'User',
+                'pass_utilisateur' => Hash::make('password'),
+                'type_utilisateur' => 'admin',
+                'etat_compte' => 'activé',
+                'statut_en_ligne' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]
         );
 
