@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UtilisateurController extends Controller
@@ -184,7 +185,11 @@ class UtilisateurController extends Controller
         $validator = Validator::make($request->all(), [
             'nom_utilisateur' => 'sometimes|string|max:255',
             'prenom_utilisateur' => 'sometimes|string|max:255',
-            'email_utilisateur' => 'sometimes|email|unique:utilisateurs,email_utilisateur,' . $id,
+            'email_utilisateur' => [
+                'sometimes',
+                'email',
+                Rule::unique('utilisateurs', 'email_utilisateur')->ignore($id, 'id_utilisateur')
+            ],
             'pass_utilisateur' => 'sometimes|min:6',
             'type_utilisateur' => 'sometimes|string|in:admin,utilisateur,moderateur',
             'tel_utilisateur' => 'nullable|string|max:20',
