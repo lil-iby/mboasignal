@@ -22,19 +22,37 @@ class OrganismesTableSeeder extends Seeder
         
         $organismes = [
             [
-                'nom_organisme' => 'Mairie de Paris',
-                'adresse_organisme' => '5 rue de Lobau, 75004 Paris',
-                'contact_organisme' => '0142465757 - contact@paris.fr',
+                'nom_organisme' => 'ENEO',
+                'domaine_organisme' => 'Électricité',
+                'email_organisme' => 'contact@eneo.cm',
+                'tel_organisme' => '+237 2 33 50 11 11',
+                'description_organisme' => 'Premier fournisseur d\'électricité au Cameroun',
+                'adresse_organisme' => 'Immeuble Eneo, Boulevard du 20 Mai, Yaoundé',
+                'statut_organisme' => 'actif',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
-                'nom_organisme' => 'RATP',
-                'adresse_organisme' => '54 quai de la Rapée, 75012 Paris',
-                'contact_organisme' => '0821104444 - service-client@ratp.fr',
+                'nom_organisme' => 'CAMWATER',
+                'domaine_organisme' => 'Eau potable',
+                'email_organisme' => 'contact@camwater.cm',
+                'tel_organisme' => '+237 2 22 23 00 00',
+                'description_organisme' => 'Société de distribution d\'eau potable au Cameroun',
+                'adresse_organisme' => 'Rue 1.840, Bastos, Yaoundé',
+                'statut_organisme' => 'actif',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
-                'nom_organisme' => 'EDF Paris',
-                'adresse_organisme' => '22-30 avenue de Wagram, 75008 Paris',
-                'contact_organisme' => '0970697979 - service-client@edf.fr',
+                'nom_organisme' => 'CAMRAIL',
+                'domaine_organisme' => 'Transport ferroviaire',
+                'email_organisme' => 'contact@camrail.net',
+                'tel_organisme' => '+237 2 33 42 38 38',
+                'description_organisme' => 'Société de chemin de fer du Cameroun',
+                'adresse_organisme' => 'Boulevard de la Liberté, Bonapriso, Douala',
+                'statut_organisme' => 'actif',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]
         ];
 

@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\Organisme;
 
 class Utilisateur extends Authenticatable
 {
@@ -47,6 +48,14 @@ class Utilisateur extends Authenticatable
         'pass_utilisateur',
         'remember_token',
     ];
+
+    /**
+     * Get the first organisme of the user.
+     */
+    public function organisme()
+    {
+        return $this->organismes()->first();
+    }
     
     /**
      * Les attributs qui doivent être convertis.
