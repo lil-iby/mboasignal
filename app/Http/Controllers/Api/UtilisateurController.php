@@ -191,7 +191,7 @@ class UtilisateurController extends Controller
                 Rule::unique('utilisateurs', 'email_utilisateur')->ignore($id, 'id_utilisateur')
             ],
             'pass_utilisateur' => 'sometimes|min:6',
-            'type_utilisateur' => 'sometimes|string|in:admin,utilisateur,moderateur',
+            'type_utilisateur' => 'sometimes|string|in:superadmin,admin,technicien,citoyen,utilisateur',
             'tel_utilisateur' => 'nullable|string|max:20',
             'photo_utilisateur' => 'nullable|string|max:255',
             'etat_compte' => 'sometimes|in:activé,désactivé,suspendu'
