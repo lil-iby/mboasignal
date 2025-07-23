@@ -18,16 +18,40 @@ class RoleSeeder extends Seeder
     {
         // Créer les rôles
         $superAdminRole = Role::firstOrCreate(
-            ['name' => 'super-admin'],
+            ['name' => 'superadmin'],
             [
-                'guard_name' => 'web'
+                'guard_name' => 'web',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]
         );
 
         $adminRole = Role::firstOrCreate(
             ['name' => 'admin'],
             [
-                'guard_name' => 'web'
+                'guard_name' => 'web',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+        
+        // Créer le rôle citoyen
+        $citizenRole = Role::firstOrCreate(
+            ['name' => 'citoyen'],
+            [
+                'guard_name' => 'web',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+        
+        // Créer le rôle technicien
+        $technicianRole = Role::firstOrCreate(
+            ['name' => 'technicien'],
+            [
+                'guard_name' => 'web',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]
         );
 
@@ -41,9 +65,9 @@ class RoleSeeder extends Seeder
             ]
         );
 
-        // Attribuer le rôle super-admin à l'utilisateur
-        if (!$superAdmin->hasRole('super-admin')) {
-            $superAdmin->assignRole('super-admin');
+        // Attribuer le rôle superadmin à l'utilisateur
+        if (!$superAdmin->hasRole('superadmin')) {
+            $superAdmin->assignRole('superadmin');
         }
 
         // Créer un utilisateur admin par défaut
