@@ -47,42 +47,41 @@ class SuperAdminSeeder extends Seeder
         // Créer les utilisateurs super admin
         $superAdmins = [
             [
+                'code_utilisateur' => 'SUPERADMIN1',
                 'nom_utilisateur' => 'Yamba',
                 'prenom_utilisateur' => 'Erinn',
                 'email_utilisateur' => 'yamba@gmail.com',
                 'pass_utilisateur' => Hash::make('123456789'),
                 'type_utilisateur' => 'superadmin',
-                'date_inscription' => now(),
+                'tel_utilisateur' => '+237690000001',
                 'etat_compte' => 'activé',
+                'type_compte' => 'superadmin',
+                'date_inscription' => now(),
                 'date_confirmation' => now(),
-                'statut_utilisateur' => 'actif'
+                'derniere_modification' => now(),
+                'statut_en_ligne' => true
             ],
             [
+                'code_utilisateur' => 'SUPERADMIN2',
                 'nom_utilisateur' => 'Yamba',
                 'prenom_utilisateur' => 'Erinn',
                 'email_utilisateur' => 'yamba.e@gmail.com',
                 'pass_utilisateur' => Hash::make('123456789'),
                 'type_utilisateur' => 'superadmin',
-                'date_inscription' => now(),
+                'tel_utilisateur' => '+237690000002',
                 'etat_compte' => 'activé',
+                'type_compte' => 'superadmin',
+                'date_inscription' => now(),
                 'date_confirmation' => now(),
-                'statut_utilisateur' => 'actif'
+                'derniere_modification' => now(),
+                'statut_en_ligne' => true
             ]
         ];
 
         foreach ($superAdmins as $admin) {
             $user = User::firstOrCreate(
                 ['email_utilisateur' => $admin['email_utilisateur']],
-                [
-                    'nom_utilisateur' => $admin['nom_utilisateur'],
-                    'prenom_utilisateur' => $admin['prenom_utilisateur'],
-                    'pass_utilisateur' => $admin['pass_utilisateur'],
-                    'type_utilisateur' => $admin['type_utilisateur'],
-                    'date_inscription' => $admin['date_inscription'],
-                    'etat_compte' => $admin['etat_compte'],
-                    'date_confirmation' => $admin['date_confirmation'],
-                    'statut_utilisateur' => $admin['statut_utilisateur']
-                ]
+                $admin
             );
 
             // Assigner le rôle Super Admin
