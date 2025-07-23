@@ -162,9 +162,14 @@ class AuthController extends BaseController
         $user->load('organisme');
         
         return response()->json([
-            'success' => true,
+            'status' => 'success',
             'message' => 'Connexion réussie',
             'data' => [
+                'authorization' => [
+                    'token' => $token,
+                    'type' => 'bearer',
+                    'expires_in' => config('sanctum.expiration', 60 * 24 * 7) // en minutes
+                ],
                 'user' => [
                     'id' => $user->id_utilisateur,
                     'nom' => $user->nom_utilisateur,
@@ -178,11 +183,6 @@ class AuthController extends BaseController
                     ] : null,
                     'statut_en_ligne' => $user->statut_en_ligne,
                     'derniere_connexion' => $user->derniere_connexion,
-                ],
-                'token' => [
-                    'access_token' => $token,
-                    'token_type' => 'bearer',
-                    'expires_in' => config('sanctum.expiration', 60 * 24 * 7) // en minutes
                 ]
             ]
         ]);

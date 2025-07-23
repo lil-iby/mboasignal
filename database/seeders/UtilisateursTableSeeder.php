@@ -23,9 +23,9 @@ class UtilisateursTableSeeder extends Seeder
         
         $utilisateurs = [
             [
-                'nom_utilisateur' => 'Ngou Pare',
-                'prenom_utilisateur' => 'Ibrahim',
-                'email_utilisateur' => 'ibrahim.ngoupare@gmail.com',
+                'nom_utilisateur' => 'yamba',
+                'prenom_utilisateur' => 'erinn',
+                'email_utilisateur' => 'yamba@gmail.com',
                 'pass_utilisateur' => Hash::make('123456789'),
                 'type_utilisateur' => 'admin',
                 'tel_utilisateur' => '0601020304',
@@ -35,7 +35,7 @@ class UtilisateursTableSeeder extends Seeder
                 'date_confirmation' => now(),
             ],
             [
-                'nom_utilisateur' => 'Pemboura Pare',
+                'nom_utilisateur' => 'Pemboura',
                 'prenom_utilisateur' => 'Noura',
                 'email_utilisateur' => 'noura.pembourapare@gmail.com',
                 'pass_utilisateur' => Hash::make('password123'),
@@ -52,7 +52,7 @@ class UtilisateursTableSeeder extends Seeder
             Utilisateur::create($utilisateur);
         }
         
-        // Réactiver les contraintes de clé étrangère
+        // Réactiver les contraintes de clé étrangère   
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
 }
