@@ -14,6 +14,9 @@
 
   <!-- CSS commun dashboard -->
   <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}" />
+  <link rel="stylesheet" href="{{ asset('css/custom.css') }}" />
+  <!-- Font Awesome pour les icônes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
 
 </head>
 <body>
